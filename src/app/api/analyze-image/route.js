@@ -45,7 +45,15 @@ export async function POST(req) {
       },
     ];
 
-    const result = await model.generateContent([prompt, ...imageParts]);
+    let result;
+    try {
+      result = await model.generateContent([prompt, ...imageParts]);
+    } catch (apiError) {
+      console.warn("Primary AI failed (likely rate limit). Falling back to flash...", apiError);
+      const flashModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      result = await flashModel.generateContent([prompt, ...imageParts]);
+    }
+
     const responseText = result.response.text();
     
     // Parse the JSON (clean up any possible markdown if the model hallucinated it)

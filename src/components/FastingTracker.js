@@ -16,12 +16,7 @@ export function FastingTracker({ fallbackStartTime }) {
   useEffect(() => {
     const savedTime = localStorage.getItem('customFastingStartTime')
     if (savedTime) {
-      if (fallbackStartTime && new Date(fallbackStartTime) > new Date(savedTime)) {
-        localStorage.removeItem('customFastingStartTime')
-        setStartTime(fallbackStartTime)
-      } else {
-        setStartTime(savedTime)
-      }
+      setStartTime(savedTime)
     } else {
       setStartTime(fallbackStartTime)
     }

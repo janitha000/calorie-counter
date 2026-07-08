@@ -40,8 +40,16 @@ export async function POST(req) {
       Do not include any markdown formatting like \`\`\`json or \`\`\` in the response. Just the raw JSON object.`;
     }
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    let response;
+    try {
+      response = await model.generateContent(prompt);
+    } catch (apiError) {
+      console.warn("Primary AI failed (likely rate limit). Falling back to flash...", apiError);
+      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      response = await fallbackModel.generateContent(prompt);
+    }
+
+    let responseText = response.response.text();
     
     // Parse the JSON (clean up any possible markdown if the model hallucinated it)
     const cleanedText = responseText.replace(/```json\s*/g, '').replace(/```/g, '').trim();
