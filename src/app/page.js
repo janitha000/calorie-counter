@@ -56,10 +56,10 @@ export default function Dashboard() {
           </div>
           {/* Decorative Elements */}
           <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-primary/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-4 right-4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+          <div className="absolute top-4 right-4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-md z-20">
             4.9 out of 5 <span className="text-sm">🔥</span>
           </div>
-          {/* We'd place a pear image here natively, skipping for now to keep it clean */}
+          <Image src="/pear.png" alt="Pear" width={160} height={160} className="absolute -right-4 -bottom-6 drop-shadow-2xl opacity-90 z-10" />
         </div>
 
         {/* Categories */}
@@ -69,13 +69,18 @@ export default function Dashboard() {
             <button className="text-xs text-gray-500 font-medium hover:text-gray-900">See all</button>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-            {["Vegan", "Carb", "Protein", "Snacks", "Drink"].map((cat, i) => (
+            {[
+              { name: "Vegan", icon: "🥑" },
+              { name: "Carb", icon: "🥐" },
+              { name: "Protein", icon: "🥚" },
+              { name: "Snacks", icon: "🥨" },
+              { name: "Drink", icon: "🥤" }
+            ].map((cat, i) => (
               <div key={i} className="flex flex-col items-center gap-2 min-w-[72px]">
-                <div className="w-16 h-16 rounded-full bg-white shadow-soft border border-gray-50 flex items-center justify-center p-3">
-                  {/* Placeholder for category icons */}
-                  <div className="w-full h-full bg-gray-100 rounded-full"></div>
+                <div className="w-16 h-16 rounded-full bg-white shadow-soft border border-gray-50 flex items-center justify-center p-3 text-3xl">
+                  {cat.icon}
                 </div>
-                <span className="text-xs font-medium text-gray-600">{cat}</span>
+                <span className="text-xs font-medium text-gray-600">{cat.name}</span>
               </div>
             ))}
           </div>
@@ -91,9 +96,8 @@ export default function Dashboard() {
                 <h4 className="font-bold text-gray-900">Chicken Salad</h4>
                 <p className="text-xs text-gray-500 mt-1 mb-3">480 kcal</p>
               </div>
-              <div className="w-full h-32 bg-gray-100 rounded-2xl mb-3 overflow-hidden">
-                {/* Image Placeholder */}
-                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200"></div>
+              <div className="w-full h-32 rounded-2xl mb-3 overflow-hidden relative shadow-inner">
+                <Image src="/chicken_salad.png" alt="Chicken Salad" fill className="object-cover" />
               </div>
               <button className="bg-[#111827] text-white w-full py-3 rounded-2xl flex justify-center items-center gap-2 text-sm font-medium mt-auto">
                 <span className="opacity-70">🍲</span> Tell me Recipe
@@ -106,9 +110,8 @@ export default function Dashboard() {
                 <h4 className="font-bold text-gray-900">Herb Omelette</h4>
                 <p className="text-xs text-gray-500 mt-1 mb-3">300 kcal</p>
               </div>
-              <div className="w-full h-32 bg-gray-100 rounded-2xl mb-3 overflow-hidden">
-                {/* Image Placeholder */}
-                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200"></div>
+              <div className="w-full h-32 rounded-2xl mb-3 overflow-hidden relative shadow-inner">
+                <Image src="/herb_omelette.png" alt="Herb Omelette" fill className="object-cover" />
               </div>
               <button className="bg-[#111827] text-white w-full py-3 rounded-2xl flex justify-center items-center gap-2 text-sm font-medium mt-auto">
                 <span className="opacity-70">🍳</span> Tell me Recipe
