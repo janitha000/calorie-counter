@@ -4,11 +4,12 @@ import { Bell, Flame, Clock } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { FoodInput } from "@/components/FoodInput";
 import { MealCard } from "@/components/MealCard";
+import { FastingWidget } from "@/components/FastingWidget";
 import { format } from "date-fns";
 
 export default async function Dashboard() {
   const userId = "default_user_janitha";
-  const defaultTdee = 2000;
+  const defaultTdee = 1600;
 
   // Auto-create or fetch user
   await prisma.user.upsert({
@@ -49,6 +50,12 @@ export default async function Dashboard() {
   const consumedFat = todayMeals.reduce((acc, meal) => acc + meal.fat, 0);
   const remainingCalories = Math.max(0, defaultTdee - consumedCalories);
 
+  // Fetch absolutely latest meal for fasting tracker
+  const latestMeal = await prisma.meal.findFirst({
+    where: { userId: userId },
+    orderBy: { loggedAt: 'desc' }
+  });
+
   // Progress percentage for the ring
   const progressPercent = Math.min(100, Math.round((consumedCalories / defaultTdee) * 100));
 
@@ -61,11 +68,28 @@ export default async function Dashboard() {
         {/* Daily Summary Card */}
         <div className="bg-[#111827] text-white rounded-[24px] p-6 shadow-2xl relative overflow-hidden">
           <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 font-semibold text-[12px] uppercase tracking-widest mb-1.5">Calories Remaining</p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-extrabold tracking-tight">{remainingCalories}</span>
-                <span className="text-gray-400 font-semibold text-sm">/ {defaultTdee} kcal</span>
+            <div className="flex-1 mr-6">
+              <p className="text-gray-400 font-semibold text-[11px] uppercase tracking-widest mb-4">Calories</p>
+              
+              <div className="flex justify-between items-center text-center">
+                <div className="flex flex-col items-center">
+                  <div className="text-2xl font-bold tracking-tight">{consumedCalories}</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Food</div>
+                </div>
+                
+                <div className="text-gray-600 font-bold">-</div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="text-2xl font-bold tracking-tight">0</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Exercise</div>
+                </div>
+                
+                <div className="text-gray-600 font-bold">=</div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="text-2xl font-extrabold text-green-400 tracking-tight">{remainingCalories}</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Remaining</div>
+                </div>
               </div>
             </div>
             
@@ -136,8 +160,13 @@ export default async function Dashboard() {
 
           {/* Decorative background gradients */}
           <div className="absolute -top-12 -right-12 w-64 h-64 bg-green-500/20 rounded-full blur-[60px]"></div>
-          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-blue-500/10 rounded-full blur-[60px]"></div>
+          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-blue-500/10 rounded-full blur-[60px]">          </div>
         </div>
+
+        {/* Fasting Widget */}
+        {latestMeal && (
+          <FastingWidget lastMealTime={latestMeal.loggedAt.toISOString()} />
+        )}
 
         {/* Input Area */}
         <section className="relative z-20">

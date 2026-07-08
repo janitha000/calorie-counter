@@ -25,7 +25,7 @@ export async function POST(req) {
         protein: Number(data.protein) || 0,
         carbs: Number(data.carbs) || 0,
         fat: Number(data.fat) || 0,
-        type: type,
+        type: data.type || type,
       }
     });
 

@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function StatsPage({ searchParams }) {
   const userId = "default_user_janitha"; // Hardcoded for MVP
-  const defaultTdee = 2000;
+  const defaultTdee = 1600;
   
   // Parse date from searchParams, or default to today
   let selectedDate = new Date();
