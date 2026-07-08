@@ -76,7 +76,6 @@ export function FastingTracker({ fallbackStartTime }) {
       if (!res.ok) throw new Error('Failed to save fast')
       
       alert('Fasting successfully logged!')
-      // Reset tracker to start a new fast from right now (or they can just rely on the next meal)
       setStartTime(finalEndTime)
       setEndTime('')
       localStorage.removeItem('customFastingStartTime')
@@ -89,126 +88,81 @@ export function FastingTracker({ fallbackStartTime }) {
   }
 
   if (!startTime && !isEditingStart) return null
-
   const isFastingZone = elapsed.hours >= 12
 
   return (
-    <div className="bg-white rounded-[24px] p-6 shadow-xl border border-gray-100 flex flex-col gap-6">
+    <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3 relative z-30">
       
-      {/* Header & Timer */}
+      {/* Top Row: Icon + Timer */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border-2 ${isFastingZone ? 'bg-orange-50 text-orange-500 border-orange-100' : 'bg-blue-50 text-blue-500 border-blue-100'}`}>
-            {isFastingZone ? <Flame className="w-7 h-7" /> : <Clock className="w-7 h-7" />}
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${isFastingZone ? 'bg-orange-50 text-orange-500 border-orange-100' : 'bg-blue-50 text-blue-500 border-blue-100'}`}>
+            {isFastingZone ? <Flame className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
           </div>
           <div>
-            <h4 className="text-gray-900 font-extrabold text-[18px]">Fasting Tracker</h4>
-            {isFastingZone && <p className="text-orange-500 text-[11px] font-bold uppercase tracking-wider mt-0.5">Fat Burn Zone 🔥</p>}
+            <h4 className="text-gray-900 font-bold text-[14px] leading-tight">Fasting</h4>
+            {isFastingZone && <p className="text-orange-500 text-[9px] font-bold uppercase tracking-wider">Fat Burn 🔥</p>}
           </div>
         </div>
         
-        <div className="text-right flex items-baseline justify-end gap-1">
-          <span className="text-4xl font-black text-gray-900 tracking-tight">{elapsed.hours}</span>
-          <span className="text-[14px] font-bold text-gray-400 uppercase tracking-widest mr-1">h</span>
-          <span className="text-4xl font-black text-gray-900 tracking-tight">{elapsed.minutes.toString().padStart(2, '0')}</span>
-          <span className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">m</span>
+        <div className="text-right flex items-baseline justify-end gap-0.5">
+          <span className="text-2xl font-black text-gray-900 tracking-tight">{elapsed.hours}</span>
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mr-1">h</span>
+          <span className="text-2xl font-black text-gray-900 tracking-tight">{elapsed.minutes.toString().padStart(2, '0')}</span>
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">m</span>
         </div>
       </div>
 
-      <div className="h-px w-full bg-gray-100"></div>
+      <div className="h-px w-full bg-gray-100 my-0.5"></div>
 
-      {/* Start Time Config */}
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Start Time</label>
-          {!isEditingStart && (
-            <button onClick={() => setIsEditingStart(true)} className="text-[11px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1 hover:text-blue-600">
-              <Edit2 className="w-3 h-3" /> Edit
-            </button>
+      {/* Middle Row: Start & End Time Edit */}
+      <div className="flex gap-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+        <div className="flex-1 bg-gray-50 p-2 rounded-xl border border-gray-100">
+          <div className="flex justify-between items-center mb-1">
+            <span>Start</span>
+            {!isEditingStart && <button onClick={() => setIsEditingStart(true)} className="text-blue-500 hover:text-blue-600"><Edit2 className="w-3 h-3" /></button>}
+          </div>
+          {isEditingStart ? (
+            <div className="flex items-center gap-1">
+              <input type="datetime-local" value={formatForInput(startTime)} onChange={(e) => { if (e.target.value) { const newTime = new Date(e.target.value).toISOString(); setStartTime(newTime); localStorage.setItem('customFastingStartTime', newTime); } }} className="w-full text-[10px] p-1 bg-white border border-gray-200 rounded" />
+              <button onClick={() => setIsEditingStart(false)} className="text-green-600"><Check className="w-3 h-3" /></button>
+              <button onClick={() => { localStorage.removeItem('customFastingStartTime'); setStartTime(fallbackStartTime); setIsEditingStart(false); }} className="text-red-500"><X className="w-3 h-3" /></button>
+            </div>
+          ) : (
+            <div className="text-[11px] font-bold text-gray-800 normal-case">{startTime ? format(new Date(startTime), 'h:mm a') : 'N/A'}</div>
           )}
         </div>
-        
-        {isEditingStart ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="datetime-local"
-              value={formatForInput(startTime)}
-              onChange={(e) => {
-                if (e.target.value) {
-                  const newTime = new Date(e.target.value).toISOString()
-                  setStartTime(newTime)
-                  localStorage.setItem('customFastingStartTime', newTime)
-                }
-              }}
-              className="flex-1 text-[14px] font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-blue-400"
-            />
-            <button onClick={() => setIsEditingStart(false)} className="bg-gray-900 text-white p-2.5 rounded-xl hover:bg-gray-800 transition-colors"><Check className="w-4 h-4" /></button>
-            <button onClick={() => {
-              localStorage.removeItem('customFastingStartTime')
-              setStartTime(fallbackStartTime)
-              setIsEditingStart(false)
-            }} className="bg-gray-100 text-gray-500 p-2.5 rounded-xl hover:bg-gray-200 transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <div className="text-[15px] font-semibold text-gray-900 bg-gray-50 p-3 rounded-xl border border-gray-100">
-            {startTime ? format(new Date(startTime), 'EEEE, MMM d — h:mm a') : 'Not started'}
-          </div>
-        )}
-      </div>
 
-      {/* End Time Config (Optional if stopping) */}
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">End Time</label>
-          {!endTime && !isEditingEnd && (
-            <button onClick={() => {
-              setEndTime(new Date().toISOString())
-              setIsEditingEnd(true)
-            }} className="text-[11px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1 hover:text-blue-600">
-              Set End Time
-            </button>
+        <div className="flex-1 bg-gray-50 p-2 rounded-xl border border-gray-100">
+          <div className="flex justify-between items-center mb-1">
+            <span>End</span>
+            {!endTime && !isEditingEnd && <button onClick={() => { setEndTime(new Date().toISOString()); setIsEditingEnd(true); }} className="text-blue-500 hover:text-blue-600">Set</button>}
+          </div>
+          {isEditingEnd ? (
+            <div className="flex items-center gap-1">
+              <input type="datetime-local" value={formatForInput(endTime)} onChange={(e) => { if (e.target.value) setEndTime(new Date(e.target.value).toISOString()); }} className="w-full text-[10px] p-1 bg-white border border-gray-200 rounded" />
+              <button onClick={() => setIsEditingEnd(false)} className="text-green-600"><Check className="w-3 h-3" /></button>
+              <button onClick={() => { setEndTime(''); setIsEditingEnd(false); }} className="text-red-500"><X className="w-3 h-3" /></button>
+            </div>
+          ) : endTime ? (
+            <div className="flex justify-between items-center">
+              <span className="text-[11px] font-bold text-gray-800 normal-case">{format(new Date(endTime), 'h:mm a')}</span>
+              <button onClick={() => setIsEditingEnd(true)} className="text-gray-400 hover:text-gray-600"><Edit2 className="w-3 h-3" /></button>
+            </div>
+          ) : (
+            <div className="text-[10px] text-gray-400 normal-case italic mt-0.5">Ongoing...</div>
           )}
         </div>
-        
-        {isEditingEnd ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="datetime-local"
-              value={formatForInput(endTime)}
-              onChange={(e) => {
-                if (e.target.value) setEndTime(new Date(e.target.value).toISOString())
-              }}
-              className="flex-1 text-[14px] font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-blue-400"
-            />
-            <button onClick={() => setIsEditingEnd(false)} className="bg-gray-900 text-white p-2.5 rounded-xl hover:bg-gray-800 transition-colors"><Check className="w-4 h-4" /></button>
-            <button onClick={() => {
-              setEndTime('')
-              setIsEditingEnd(false)
-            }} className="bg-gray-100 text-gray-500 p-2.5 rounded-xl hover:bg-gray-200 transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        ) : endTime ? (
-          <div className="flex justify-between items-center text-[15px] font-semibold text-gray-900 bg-gray-50 p-3 rounded-xl border border-gray-100">
-            {format(new Date(endTime), 'EEEE, MMM d — h:mm a')}
-            <button onClick={() => setIsEditingEnd(true)} className="text-gray-400 hover:text-gray-600"><Edit2 className="w-4 h-4" /></button>
-          </div>
-        ) : (
-          <div className="text-[14px] font-medium text-gray-400 italic bg-gray-50 p-3 rounded-xl border border-gray-100">
-            Ongoing... (Click "Stop Fasting" below)
-          </div>
-        )}
       </div>
 
+      {/* Bottom Row: Save */}
       <button 
         onClick={handleSaveFastingLog}
         disabled={isSaving}
-        className="mt-2 w-full bg-gray-900 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors shadow-md shadow-gray-900/10 disabled:opacity-50"
+        className="w-full bg-gray-900 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-50 text-[12px]"
       >
-        <Save className="w-5 h-5" /> 
-        {isSaving ? 'Saving...' : (endTime ? 'Save Fasting Log' : 'Stop Fasting & Save')}
+        <Save className="w-3.5 h-3.5" /> 
+        {isSaving ? 'Saving...' : (endTime ? 'Save Fasting Log' : 'Stop & Save Fasting')}
       </button>
 
     </div>

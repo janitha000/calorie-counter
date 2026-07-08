@@ -4,6 +4,7 @@ import { Bell, Flame, Clock } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { FoodInput } from "@/components/FoodInput";
 import { MealCard } from "@/components/MealCard";
+import { FastingTracker } from "@/components/FastingTracker";
 import { FastingWidget } from "@/components/FastingWidget";
 import { format } from "date-fns";
 
@@ -65,8 +66,62 @@ export default async function Dashboard() {
 
       <main className="flex-1 px-4 pt-6 space-y-6">
         
-        {/* Top Spacer */}
-        <div className="pt-2"></div>
+        {/* Daily Summary Card */}
+        <div className="bg-[#111827] text-white rounded-[24px] p-5 shadow-2xl relative overflow-hidden">
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex-1 mr-4">
+              <p className="text-gray-400 font-semibold text-[10px] uppercase tracking-widest mb-3">Daily Calories</p>
+              
+              <div className="flex justify-between items-center text-center">
+                <div className="flex flex-col items-center">
+                  <div className="text-xl font-bold tracking-tight">{consumedCalories}</div>
+                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Food</div>
+                </div>
+                
+                <div className="text-gray-600 font-bold mx-1">-</div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="text-xl font-bold tracking-tight">0</div>
+                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Exercise</div>
+                </div>
+                
+                <div className="text-gray-600 font-bold mx-1">=</div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="text-xl font-extrabold text-green-400 tracking-tight">{remainingCalories}</div>
+                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Left</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Circular Progress */}
+            <div className="relative w-[60px] h-[60px] flex items-center justify-center shrink-0">
+              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-800" />
+                <circle 
+                  cx="50" cy="50" r="40" 
+                  stroke="currentColor" 
+                  strokeWidth="8" 
+                  fill="transparent" 
+                  strokeDasharray="251.2" 
+                  strokeDashoffset={251.2 - (251.2 * progressPercent) / 100}
+                  className="text-green-400 transition-all duration-1000 ease-out" 
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center flex-col">
+                <Flame className="w-4 h-4 text-green-400 fill-green-400/20" />
+              </div>
+            </div>
+          </div>
+
+          {/* Decorative background gradients */}
+          <div className="absolute -top-12 -right-12 w-64 h-64 bg-green-500/20 rounded-full blur-[60px]"></div>
+          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-blue-500/10 rounded-full blur-[60px]"></div>
+        </div>
+
+        {/* Compact Fasting Tracker */}
+        <FastingTracker fallbackStartTime={latestMeal ? latestMeal.loggedAt.toISOString() : null} />
 
         {/* Input Area */}
         <section className="relative z-20">
