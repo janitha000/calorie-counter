@@ -9,9 +9,7 @@ export function Navigation() {
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Log", href: "/log", icon: PlusCircle },
     { name: "Stats", href: "/stats", icon: BarChart2 },
-    { name: "Profile", href: "/profile", icon: User },
   ];
 
   return (

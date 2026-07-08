@@ -54,33 +54,23 @@ export default async function Dashboard() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
-      {/* Header */}
-      <header className="px-6 pt-12 pb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-[28px] font-extrabold text-gray-900 tracking-tight leading-tight">Hello Janitha</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Let's crush your goals today</p>
-        </div>
-        <button className="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100 relative transition-transform active:scale-95">
-          <Bell className="w-[22px] h-[22px] text-gray-600 stroke-[2.5px]" />
-          <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
-      </header>
+      {/* Removed Header for cleaner look */}
 
-      <main className="flex-1 px-6 space-y-8">
+      <main className="flex-1 px-4 pt-6 space-y-6">
         
         {/* Daily Summary Card */}
-        <div className="bg-[#111827] text-white rounded-[2rem] p-6 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#111827] text-white rounded-[24px] p-6 shadow-2xl relative overflow-hidden">
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <p className="text-gray-400 font-semibold text-[13px] uppercase tracking-wider mb-2">Calories Remaining</p>
+              <p className="text-gray-400 font-semibold text-[12px] uppercase tracking-widest mb-1.5">Calories Remaining</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-5xl font-extrabold tracking-tight">{remainingCalories}</span>
-                <span className="text-gray-400 font-semibold">/ {defaultTdee} kcal</span>
+                <span className="text-gray-400 font-semibold text-sm">/ {defaultTdee} kcal</span>
               </div>
             </div>
             
             {/* Circular Progress (CSS based) */}
-            <div className="relative w-[88px] h-[88px] flex items-center justify-center shrink-0">
+            <div className="relative w-[76px] h-[76px] flex items-center justify-center shrink-0">
               <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-800" />
                 <circle 
@@ -95,23 +85,52 @@ export default async function Dashboard() {
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <Flame className="w-[26px] h-[26px] text-green-400 mb-0.5 fill-green-400/20" />
+                <Flame className="w-5 h-5 text-green-400 fill-green-400/20" />
               </div>
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-3 gap-3 relative z-10">
-            <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center">
-              <p className="text-[11px] text-gray-400 mb-1 font-bold uppercase tracking-wide">Protein</p>
-              <p className="font-extrabold text-lg">{Math.round(consumedProtein)}<span className="text-[13px] text-gray-400 font-semibold ml-0.5">g</span></p>
+          <div className="mt-6 grid grid-cols-3 gap-3 relative z-10">
+            {/* Protein Ring */}
+            <div className="bg-white/5 rounded-2xl p-3 border border-white/5 flex items-center gap-3">
+              <div className="relative w-10 h-10 shrink-0">
+                <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/10" />
+                  <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * Math.min(100, (consumedProtein/150)*100)) / 100} className="text-red-400 transition-all" strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center"><span className="text-[9px] font-bold text-red-400 uppercase">Pro</span></div>
+              </div>
+              <div className="flex flex-col">
+                <p className="font-extrabold text-[15px] leading-none">{Math.round(consumedProtein)}<span className="text-[10px] text-gray-400 ml-0.5">g</span></p>
+              </div>
             </div>
-            <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center">
-              <p className="text-[11px] text-gray-400 mb-1 font-bold uppercase tracking-wide">Carbs</p>
-              <p className="font-extrabold text-lg">{Math.round(consumedCarbs)}<span className="text-[13px] text-gray-400 font-semibold ml-0.5">g</span></p>
+            
+            {/* Carbs Ring */}
+            <div className="bg-white/5 rounded-2xl p-3 border border-white/5 flex items-center gap-3">
+              <div className="relative w-10 h-10 shrink-0">
+                <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/10" />
+                  <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * Math.min(100, (consumedCarbs/250)*100)) / 100} className="text-blue-400 transition-all" strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center"><span className="text-[9px] font-bold text-blue-400 uppercase">Car</span></div>
+              </div>
+              <div className="flex flex-col">
+                <p className="font-extrabold text-[15px] leading-none">{Math.round(consumedCarbs)}<span className="text-[10px] text-gray-400 ml-0.5">g</span></p>
+              </div>
             </div>
-            <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center">
-              <p className="text-[11px] text-gray-400 mb-1 font-bold uppercase tracking-wide">Fat</p>
-              <p className="font-extrabold text-lg">{Math.round(consumedFat)}<span className="text-[13px] text-gray-400 font-semibold ml-0.5">g</span></p>
+
+            {/* Fat Ring */}
+            <div className="bg-white/5 rounded-2xl p-3 border border-white/5 flex items-center gap-3">
+              <div className="relative w-10 h-10 shrink-0">
+                <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/10" />
+                  <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * Math.min(100, (consumedFat/65)*100)) / 100} className="text-orange-400 transition-all" strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center"><span className="text-[9px] font-bold text-orange-400 uppercase">Fat</span></div>
+              </div>
+              <div className="flex flex-col">
+                <p className="font-extrabold text-[15px] leading-none">{Math.round(consumedFat)}<span className="text-[10px] text-gray-400 ml-0.5">g</span></p>
+              </div>
             </div>
           </div>
 
@@ -126,10 +145,10 @@ export default async function Dashboard() {
         </section>
 
         {/* Today's Entries */}
-        <section>
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Today's Entries</h3>
-            <span className="text-[11px] font-bold text-gray-500 bg-gray-200/60 px-3 py-1.5 rounded-full uppercase tracking-wider">{todayMeals.length} items</span>
+        <section className="relative z-20">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[18px] font-extrabold text-gray-900 tracking-tight">Today's Entries</h3>
+            <span className="text-[10px] font-bold text-gray-500 bg-gray-200/60 px-2.5 py-1 rounded-full uppercase tracking-wider">{todayMeals.length} items</span>
           </div>
 
           <div className="space-y-3.5">
