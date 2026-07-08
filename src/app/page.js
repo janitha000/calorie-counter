@@ -164,9 +164,7 @@ export default async function Dashboard() {
         </div>
 
         {/* Fasting Widget */}
-        {latestMeal && (
-          <FastingWidget lastMealTime={latestMeal.loggedAt.toISOString()} />
-        )}
+        <FastingWidget defaultLastMealTime={latestMeal ? latestMeal.loggedAt.toISOString() : null} />
 
         {/* Input Area */}
         <section className="relative z-20">
