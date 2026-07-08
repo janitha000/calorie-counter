@@ -26,14 +26,15 @@ export async function POST(req) {
       - durationMinutes: number
       Do not include any markdown formatting like \`\`\`json or \`\`\` in the response. Just the raw JSON object.`;
     } else {
-      prompt = `Analyze this food description and provide the nutritional information.
-      Input: "${text}"
+      prompt = `Analyze this food item: "${text}". 
       Format the response strictly as a JSON object with the following keys:
-      - name: string (best guess of the food/meal name)
-      - calories: number
-      - protein: number (in grams)
-      - carbs: number (in grams)
-      - fat: number (in grams)
+      - name: String (name of the food)
+      - servings: Number (estimated number of servings, default to 1)
+      - calories: Number (estimated total calories)
+      - protein: Number (estimated total protein in grams)
+      - carbs: Number (estimated total carbs in grams)
+      - fat: Number (estimated total fat in grams)
+      
       Do not include any markdown formatting like \`\`\`json or \`\`\` in the response. Just the raw JSON object.`;
     }
 

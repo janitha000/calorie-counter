@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Bell, Flame, Clock } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { FoodInput } from "@/components/FoodInput";
+import { MealCard } from "@/components/MealCard";
 import { format } from "date-fns";
 
 export default async function Dashboard() {
@@ -142,32 +143,7 @@ export default async function Dashboard() {
               </div>
             ) : (
               todayMeals.map((meal) => (
-                <div key={meal.id} className="bg-white p-4 rounded-[24px] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 flex items-center gap-4 transition-transform active:scale-[0.98]">
-                  <div className="w-[52px] h-[52px] bg-gray-50 rounded-[18px] flex flex-col items-center justify-center shrink-0 border border-gray-100 shadow-inner">
-                    <span className="text-[22px]">
-                      {meal.type === 'breakfast' ? '🍳' : meal.type === 'lunch' ? '🥗' : meal.type === 'dinner' ? '🍲' : '🥨'}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-[15px] text-gray-900 truncate leading-tight">{meal.name}</h4>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
-                        {meal.calories} kcal
-                      </span>
-                      <span className="text-[11px] text-gray-400 flex items-center gap-1 font-semibold">
-                        <Clock className="w-3 h-3 stroke-[2.5px]" /> {format(meal.loggedAt, 'h:mm a')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0 bg-gray-50 p-2.5 rounded-2xl border border-gray-100">
-                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Macros</p>
-                    <p className="text-[11px] font-bold text-gray-700 flex gap-1.5">
-                      <span className="text-red-500/80">P:{Math.round(meal.protein)}</span> 
-                      <span className="text-blue-500/80">C:{Math.round(meal.carbs)}</span> 
-                      <span className="text-orange-500/80">F:{Math.round(meal.fat)}</span>
-                    </p>
-                  </div>
-                </div>
+                <MealCard key={meal.id} meal={meal} />
               ))
             )}
           </div>

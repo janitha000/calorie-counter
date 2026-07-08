@@ -65,6 +65,7 @@ model Meal {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   calories    Int
+  servings    Float    @default(1)
   protein     Float    @default(0)
   carbs       Float    @default(0)
   fat         Float    @default(0)
