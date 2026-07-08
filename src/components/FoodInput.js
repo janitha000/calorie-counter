@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Camera, Loader2, Heart } from 'lucide-react'
+import { Search, Camera, Loader2, Heart, X } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -114,6 +114,21 @@ export function FoodInput() {
     }
   }
 
+  const handleDeleteTemplate = async (e, id) => {
+    e.stopPropagation()
+    if (!confirm("Remove this template?")) return
+
+    // Optimistic UI update
+    setTemplates(prev => prev.filter(t => t.id !== id))
+    
+    try {
+      await fetch(`/api/saved-meals/${id}`, { method: 'DELETE' })
+    } catch (error) {
+      console.error(error)
+      alert("Failed to delete template.")
+    }
+  }
+
   return (
     <div className="bg-white rounded-[1.5rem] p-3 shadow-lg shadow-gray-100/50 border border-gray-100 flex flex-col gap-3 relative z-30">
       
@@ -178,15 +193,23 @@ export function FoodInput() {
       {templates.length > 0 && (
         <div className="pt-2 border-t border-gray-50 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
           {templates.map(t => (
-            <button
+            <div
               key={t.id}
               onClick={() => handleUseTemplate(t)}
-              disabled={isProcessing}
-              className="whitespace-nowrap px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 rounded-xl text-[11px] font-bold transition-colors disabled:opacity-50 flex items-center gap-1 flex-shrink-0"
+              className={`whitespace-nowrap pl-3 pr-2 py-1.5 bg-pink-50 hover:bg-pink-100 rounded-xl flex items-center gap-2 flex-shrink-0 cursor-pointer transition-colors ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
               title={`Log ${t.name} (${t.calories} kcal)`}
             >
-              <Heart className="w-3 h-3 fill-pink-500" /> {t.name}
-            </button>
+              <span className="text-[11px] font-bold text-pink-600 flex items-center gap-1">
+                <Heart className="w-3 h-3 fill-pink-500" /> {t.name}
+              </span>
+              <button 
+                onClick={(e) => handleDeleteTemplate(e, t.id)}
+                className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-pink-200 text-pink-400 hover:text-pink-600 transition-colors"
+                title="Remove Template"
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </div>
           ))}
         </div>
       )}
