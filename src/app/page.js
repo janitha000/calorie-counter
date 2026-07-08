@@ -68,50 +68,61 @@ export default async function Dashboard() {
         
         {/* Daily Summary Card */}
         <div className="bg-[#111827] text-white rounded-[24px] p-5 shadow-2xl relative overflow-hidden">
-          <div className="relative z-10 flex items-center justify-between">
-            <div className="flex-1 mr-4">
-              <p className="text-gray-400 font-semibold text-[10px] uppercase tracking-widest mb-3">Daily Calories</p>
-              
-              <div className="flex justify-between items-center text-center">
-                <div className="flex flex-col items-center">
-                  <div className="text-xl font-bold tracking-tight">{consumedCalories}</div>
-                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Food</div>
+          <div className="relative z-10">
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-gray-400 font-semibold text-[10px] uppercase tracking-widest">Daily Calories</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-3xl font-black tracking-tight">{consumedCalories}</span>
+                  <span className="text-gray-500 font-bold text-sm">/ {defaultTdee} kcal</span>
                 </div>
-                
-                <div className="text-gray-600 font-bold mx-1">-</div>
-                
-                <div className="flex flex-col items-center">
-                  <div className="text-xl font-bold tracking-tight">0</div>
-                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Exercise</div>
-                </div>
-                
-                <div className="text-gray-600 font-bold mx-1">=</div>
-                
-                <div className="flex flex-col items-center">
-                  <div className="text-xl font-extrabold text-green-400 tracking-tight">{remainingCalories}</div>
-                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Left</div>
-                </div>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className={`text-2xl font-black tracking-tight ${remainingCalories === 0 ? 'text-red-400' : 'text-green-400'}`}>
+                  {remainingCalories}
+                </span>
+                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">kcal left</span>
               </div>
             </div>
-            
-            {/* Circular Progress */}
-            <div className="relative w-[60px] h-[60px] flex items-center justify-center shrink-0">
-              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-800" />
-                <circle 
-                  cx="50" cy="50" r="40" 
-                  stroke="currentColor" 
-                  strokeWidth="8" 
-                  fill="transparent" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * progressPercent) / 100}
-                  className="text-green-400 transition-all duration-1000 ease-out" 
-                  strokeLinecap="round"
+
+            {/* Calorie progress bar */}
+            <div className="mb-4">
+              <div className="h-3 w-full bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${progressPercent >= 100 ? 'bg-red-400' : progressPercent >= 80 ? 'bg-yellow-400' : 'bg-green-400'}`}
+                  style={{ width: `${progressPercent}%` }}
                 />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <Flame className="w-4 h-4 text-green-400 fill-green-400/20" />
               </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-[9px] text-gray-500 font-bold">0</span>
+                <span className="text-[9px] text-gray-500 font-bold">{progressPercent}%</span>
+                <span className="text-[9px] text-gray-500 font-bold">{defaultTdee}</span>
+              </div>
+            </div>
+
+            {/* Macros row */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Protein', consumed: Math.round(consumedProtein), goal: 150, color: 'bg-red-400', track: 'bg-red-900/40' },
+                { label: 'Carbs',   consumed: Math.round(consumedCarbs),   goal: 250, color: 'bg-blue-400', track: 'bg-blue-900/40' },
+                { label: 'Fat',     consumed: Math.round(consumedFat),     goal: 65,  color: 'bg-orange-400', track: 'bg-orange-900/40' },
+              ].map(({ label, consumed, goal, color, track }) => {
+                const pct = Math.min(100, Math.round((consumed / goal) * 100));
+                const remaining = Math.max(0, goal - consumed);
+                return (
+                  <div key={label}>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">{label}</span>
+                      <span className="text-[10px] font-bold text-gray-300">{consumed}g</span>
+                    </div>
+                    <div className={`h-1.5 w-full ${track} rounded-full overflow-hidden`}>
+                      <div className={`h-full ${color} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <p className="text-[9px] text-gray-500 font-medium mt-0.5">{remaining}g left</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
