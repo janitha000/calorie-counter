@@ -14,7 +14,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     let prompt = "";
     if (type === "exercise") {
@@ -46,7 +46,7 @@ export async function POST(req) {
       response = await model.generateContent(prompt);
     } catch (apiError) {
       console.warn("Primary AI failed (likely rate limit). Falling back to flash...", apiError);
-      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
       response = await fallbackModel.generateContent(prompt);
     }
 

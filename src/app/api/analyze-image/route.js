@@ -21,7 +21,7 @@ export async function POST(req) {
     // Determine mime type from file, fallback to jpeg
     const mimeType = image.type || "image/jpeg";
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     const prompt = `Analyze this food image and provide the nutritional information. 
     Format the response strictly as a JSON object with the following keys:
@@ -51,8 +51,8 @@ export async function POST(req) {
       result = await model.generateContent([prompt, ...imageParts]);
     } catch (apiError) {
       console.warn("Primary AI failed (likely rate limit). Falling back to flash...", apiError);
-      const flashModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      result = await flashModel.generateContent([prompt, ...imageParts]);
+      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
+      result = await fallbackModel.generateContent([prompt, ...imageParts]);
     }
 
     const responseText = result.response.text();
