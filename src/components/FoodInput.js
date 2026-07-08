@@ -2,11 +2,14 @@
 
 import { Search, Camera, Loader2 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export function FoodInput() {
   const fileInputRef = useRef(null)
   const [textInput, setTextInput] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+
+  const router = useRouter()
 
   const handleCameraClick = () => {
     fileInputRef.current?.click()
@@ -17,23 +20,62 @@ export function FoodInput() {
     if (!file) return
 
     setIsProcessing(true)
-    // We will implement the actual API call logic in the next phase
-    setTimeout(() => {
-      alert("Image ready! We will connect this to the Gemini API soon.")
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+      
+      const res = await fetch('/api/analyze-image', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!res.ok) throw new Error("Failed to analyze image")
+      const aiData = await res.json()
+
+      await fetch('/api/meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(aiData)
+      })
+
+      router.refresh()
+    } catch (error) {
+      console.error(error)
+      alert("Something went wrong. Please try again.")
+    } finally {
       setIsProcessing(false)
-    }, 1000)
+    }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!textInput.trim()) return
     
     setIsProcessing(true)
-    setTimeout(() => {
-      alert("Text ready! We will connect this to the Gemini API soon.")
+    try {
+      const res = await fetch('/api/analyze-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textInput, type: 'food' })
+      })
+
+      if (!res.ok) throw new Error("Failed to analyze text")
+      const aiData = await res.json()
+
+      await fetch('/api/meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(aiData)
+      })
+
       setTextInput('')
+      router.refresh()
+    } catch (error) {
+      console.error(error)
+      alert("Something went wrong. Please try again.")
+    } finally {
       setIsProcessing(false)
-    }, 1000)
+    }
   }
 
   return (
