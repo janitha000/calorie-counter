@@ -21,7 +21,7 @@ export async function POST(req) {
     // Determine mime type from file, fallback to jpeg
     const mimeType = image.type || "image/jpeg";
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Analyze this food image and provide the nutritional information. 
     Format the response strictly as a JSON object with the following keys:
