@@ -104,9 +104,9 @@ export default async function Dashboard() {
             {/* Macros row */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Protein', consumed: Math.round(consumedProtein), goal: 150, color: 'bg-red-400', track: 'bg-red-900/40' },
-                { label: 'Carbs',   consumed: Math.round(consumedCarbs),   goal: 250, color: 'bg-blue-400', track: 'bg-blue-900/40' },
-                { label: 'Fat',     consumed: Math.round(consumedFat),     goal: 65,  color: 'bg-orange-400', track: 'bg-orange-900/40' },
+                { label: 'Protein', consumed: Math.round(consumedProtein), goal: 135, color: 'bg-red-400', track: 'bg-red-900/40' },
+                { label: 'Carbs',   consumed: Math.round(consumedCarbs),   goal: 135, color: 'bg-blue-400', track: 'bg-blue-900/40' },
+                { label: 'Fat',     consumed: Math.round(consumedFat),     goal: 58,  color: 'bg-orange-400', track: 'bg-orange-900/40' },
               ].map(({ label, consumed, goal, color, track }) => {
                 const pct = Math.min(100, Math.round((consumed / goal) * 100));
                 const remaining = Math.max(0, goal - consumed);

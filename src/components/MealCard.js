@@ -42,10 +42,10 @@ export function MealCard({ meal }) {
 
   // Default daily goals for percentages
   const GOALS = {
-    calories: 2000,
-    carbs: 250,
-    protein: 150,
-    fat: 65
+    calories: 1600,
+    carbs: 135,
+    protein: 135,
+    fat: 58
   }
 
   const handleDelete = async () => {

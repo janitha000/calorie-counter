@@ -58,9 +58,9 @@ export function StatsView({ initialDate, data, tdee }) {
   // Goals
   const GOALS = {
     calories: tdee,
-    protein: 150,
-    carbs: 250,
-    fat: 65,
+    protein: 135,
+    carbs: 135,
+    fat: 58,
     sugar: 25
   };
 
