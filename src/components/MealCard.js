@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Clock, Trash2, Edit2, Check, X, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 
@@ -9,6 +9,7 @@ export function MealCard({ meal }) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   
   const [editData, setEditData] = useState({
     name: meal.name,
@@ -19,10 +20,15 @@ export function MealCard({ meal }) {
     fat: meal.fat,
   })
 
-  const handleDelete = async () => {
-    const confirmed = window.confirm(`Are you sure you want to delete ${meal.name}?`)
-    if (!confirmed) return
+  // Default daily goals for percentages
+  const GOALS = {
+    calories: 2000,
+    carbs: 250,
+    protein: 150,
+    fat: 65
+  }
 
+  const handleDelete = async () => {
     setIsDeleting(true)
     try {
       const res = await fetch(`/api/meals/${meal.id}`, { method: 'DELETE' })
@@ -31,6 +37,7 @@ export function MealCard({ meal }) {
     } catch (err) {
       alert("Failed to delete meal")
       setIsDeleting(false)
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -52,9 +59,29 @@ export function MealCard({ meal }) {
 
   const emoji = meal.type === 'breakfast' ? '🍳' : meal.type === 'lunch' ? '🥗' : meal.type === 'dinner' ? '🍲' : '🥨'
 
+  const MacroColumn = ({ label, value, unit, goal }) => {
+    const percentage = Math.min(100, Math.round((value / goal) * 100))
+    return (
+      <div className="flex flex-col">
+        <span className="text-[12px] text-gray-500 mb-1">{label}</span>
+        <div className="flex items-baseline gap-0.5 mb-1.5">
+          <span className="text-[16px] font-bold text-gray-900 leading-none">{value}</span>
+          {unit && <span className="text-[12px] font-bold text-gray-900">{unit}</span>}
+        </div>
+        <div className="h-1.5 w-full bg-blue-100 rounded-full overflow-hidden mb-1.5">
+          <div 
+            className="h-full bg-[#99b7db] rounded-full" 
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        <span className="text-[11px] text-gray-500 font-medium">{percentage}%</span>
+      </div>
+    )
+  }
+
   if (isEditing) {
     return (
-      <div className="bg-white p-5 rounded-[24px] shadow-lg border border-gray-200 transition-all">
+      <div className="bg-white p-5 rounded-2xl shadow-lg border border-gray-200 transition-all">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center shrink-0 border border-gray-100">
             <span className="text-xl">{emoji}</span>
@@ -102,56 +129,68 @@ export function MealCard({ meal }) {
     )
   }
 
-  return (
-    <div className={`bg-white p-4 rounded-[24px] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 flex gap-4 transition-all relative group ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
-      <div className="w-[52px] h-[52px] bg-gray-50 rounded-[18px] flex flex-col items-center justify-center shrink-0 border border-gray-100 shadow-inner mt-1">
-        <span className="text-[22px]">{emoji}</span>
+  if (showDeleteConfirm) {
+    return (
+      <div className="bg-white p-6 rounded-2xl border border-red-100 shadow-[0_2px_10px_-2px_rgba(255,0,0,0.05)] transition-all flex flex-col justify-center items-center text-center gap-3">
+        <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-1">
+          <Trash2 className="w-7 h-7" />
+        </div>
+        <div>
+          <h4 className="font-bold text-gray-900 text-lg">Delete {meal.name}?</h4>
+          <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
+        </div>
+        <div className="flex w-full gap-3 mt-4">
+          <button onClick={() => setShowDeleteConfirm(false)} disabled={isDeleting} className="flex-1 bg-white text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200">
+            Cancel
+          </button>
+          <button onClick={handleDelete} disabled={isDeleting} className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition-colors shadow-md shadow-red-500/20 disabled:opacity-50">
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
       </div>
-      
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between mb-1">
-          <div className="min-w-0 pr-2">
-            <h4 className="font-bold text-[16px] text-gray-900 truncate leading-tight">{meal.name}</h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-md border border-green-100 shadow-sm">
-                {meal.calories} kcal
-              </span>
-              <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-                {meal.servings} {meal.servings === 1 ? 'serving' : 'servings'}
-              </span>
-            </div>
-          </div>
-          
-          <div className="flex gap-1 shrink-0 bg-gray-50 p-1 rounded-xl border border-gray-100 shadow-sm">
-            <button onClick={() => setIsEditing(true)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-white rounded-lg transition-all shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100">
-              <Edit2 className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={handleDelete} className="p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-all shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-        
-        {/* Prominent Macros Section */}
-        <div className="mt-3.5 grid grid-cols-3 gap-2">
-          <div className="bg-red-50/50 rounded-xl p-2 flex flex-col items-center border border-red-50">
-            <span className="text-[9px] font-bold text-red-400 uppercase tracking-widest mb-0.5">Protein</span>
-            <span className="text-[13px] font-extrabold text-red-600">{Math.round(meal.protein)}<span className="text-[10px] text-red-400 font-bold ml-0.5">g</span></span>
-          </div>
-          <div className="bg-blue-50/50 rounded-xl p-2 flex flex-col items-center border border-blue-50">
-            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">Carbs</span>
-            <span className="text-[13px] font-extrabold text-blue-600">{Math.round(meal.carbs)}<span className="text-[10px] text-blue-400 font-bold ml-0.5">g</span></span>
-          </div>
-          <div className="bg-orange-50/50 rounded-xl p-2 flex flex-col items-center border border-orange-50">
-            <span className="text-[9px] font-bold text-orange-400 uppercase tracking-widest mb-0.5">Fat</span>
-            <span className="text-[13px] font-extrabold text-orange-600">{Math.round(meal.fat)}<span className="text-[10px] text-orange-400 font-bold ml-0.5">g</span></span>
-          </div>
-        </div>
+    )
+  }
 
-        <div className="mt-3 flex justify-end">
-          <span className="text-[10px] text-gray-400 flex items-center gap-1 font-semibold">
-            <Clock className="w-3 h-3 stroke-[2.5px]" /> {format(new Date(meal.loggedAt), 'h:mm a')}
-          </span>
+  return (
+    <div className="bg-white p-5 rounded-2xl shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col gap-4">
+      {/* Top Header Section */}
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 bg-gray-50 rounded-xl flex flex-col items-center justify-center shrink-0 border border-gray-100 shadow-sm">
+          <span className="text-2xl">{emoji}</span>
+        </div>
+        <div className="flex-1 min-w-0 pt-0.5">
+          <h4 className="font-medium text-[16px] text-gray-900 truncate">{meal.name}</h4>
+          <p className="text-[13px] text-gray-500 mt-0.5 truncate font-medium">
+            {meal.servings} {meal.servings === 1 ? 'serving' : 'servings'}
+          </p>
+        </div>
+      </div>
+
+      <div className="h-px w-full bg-gray-100 my-1"></div>
+
+      {/* Macros Section */}
+      <div className="grid grid-cols-4 gap-4 px-1">
+        <MacroColumn label="Calories" value={meal.calories} unit="" goal={GOALS.calories} />
+        <MacroColumn label="Carbs" value={Math.round(meal.carbs)} unit="g" goal={GOALS.carbs} />
+        <MacroColumn label="Protein" value={Math.round(meal.protein)} unit="g" goal={GOALS.protein} />
+        <MacroColumn label="Fat" value={Math.round(meal.fat)} unit="g" goal={GOALS.fat} />
+      </div>
+
+      <div className="h-px w-full bg-gray-100 my-1"></div>
+
+      {/* Footer Section */}
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] text-gray-400 font-medium tracking-wide">
+          {format(new Date(meal.loggedAt), 'HH:mm')}
+        </span>
+        
+        <div className="flex gap-2">
+          <button onClick={() => setIsEditing(true)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button onClick={() => setShowDeleteConfirm(true)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
