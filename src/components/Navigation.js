@@ -9,6 +9,7 @@ export function Navigation() {
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
+    { name: "Summary", href: "/summary", icon: PlusCircle },
     { name: "Stats", href: "/stats", icon: BarChart2 },
   ];
 

@@ -25,6 +25,11 @@ export function FastingTracker({ fallbackStartTime }) {
     } else {
       setStartTime(fallbackStartTime)
     }
+
+    const savedEndTime = localStorage.getItem('customFastingEndTime')
+    if (savedEndTime) {
+      setEndTime(savedEndTime)
+    }
   }, [fallbackStartTime])
 
   // Timer logic
@@ -79,6 +84,7 @@ export function FastingTracker({ fallbackStartTime }) {
       setStartTime(finalEndTime)
       setEndTime('')
       localStorage.removeItem('customFastingStartTime')
+      localStorage.removeItem('customFastingEndTime')
     } catch (err) {
       console.error(err)
       alert("Failed to save fasting log.")
@@ -136,13 +142,24 @@ export function FastingTracker({ fallbackStartTime }) {
         <div className="flex-1 bg-gray-50 p-2 rounded-xl border border-gray-100">
           <div className="flex justify-between items-center mb-1">
             <span>End</span>
-            {!endTime && !isEditingEnd && <button onClick={() => { setEndTime(new Date().toISOString()); setIsEditingEnd(true); }} className="text-blue-500 hover:text-blue-600">Set</button>}
+            {!endTime && !isEditingEnd && <button onClick={() => { 
+              const newEnd = new Date().toISOString();
+              setEndTime(newEnd); 
+              localStorage.setItem('customFastingEndTime', newEnd);
+              setIsEditingEnd(true); 
+            }} className="text-blue-500 hover:text-blue-600">Set</button>}
           </div>
           {isEditingEnd ? (
             <div className="flex items-center gap-1">
-              <input type="datetime-local" value={formatForInput(endTime)} onChange={(e) => { if (e.target.value) setEndTime(new Date(e.target.value).toISOString()); }} className="w-full text-[10px] p-1 bg-white border border-gray-200 rounded" />
+              <input type="datetime-local" value={formatForInput(endTime)} onChange={(e) => { 
+                if (e.target.value) {
+                  const newEnd = new Date(e.target.value).toISOString();
+                  setEndTime(newEnd); 
+                  localStorage.setItem('customFastingEndTime', newEnd);
+                }
+              }} className="w-full text-[10px] p-1 bg-white border border-gray-200 rounded" />
               <button onClick={() => setIsEditingEnd(false)} className="text-green-600"><Check className="w-3 h-3" /></button>
-              <button onClick={() => { setEndTime(''); setIsEditingEnd(false); }} className="text-red-500"><X className="w-3 h-3" /></button>
+              <button onClick={() => { setEndTime(''); localStorage.removeItem('customFastingEndTime'); setIsEditingEnd(false); }} className="text-red-500"><X className="w-3 h-3" /></button>
             </div>
           ) : endTime ? (
             <div className="flex justify-between items-center">
