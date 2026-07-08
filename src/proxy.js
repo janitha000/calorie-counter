@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-export function middleware(request) {
+export default function proxy(request) {
   const { pathname } = request.nextUrl
   const pin = request.cookies.get('auth_pin')
 
