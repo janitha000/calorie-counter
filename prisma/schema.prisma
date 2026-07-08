@@ -81,10 +81,12 @@ model SavedMeal {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
+  items       Json?
   calories    Int
   protein     Float    @default(0)
   carbs       Float    @default(0)
   fat         Float    @default(0)
+  sugar       Float    @default(0)
 }
 
 model DailyStats {

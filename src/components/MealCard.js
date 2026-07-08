@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Trash2, Edit2, Check, X, AlertTriangle, Plus } from 'lucide-react'
+import { Clock, Trash2, Edit2, Check, X, AlertTriangle, Plus, Heart } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 
@@ -10,6 +10,7 @@ export function MealCard({ meal }) {
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   
   const [editData, setEditData] = useState({
     name: meal.name,
@@ -106,6 +107,24 @@ export function MealCard({ meal }) {
       ...editData,
       items: [...editData.items, { name: "New Item", servings: 1, calories: 0, protein: 0, carbs: 0, fat: 0, sugar: 0 }]
     })
+  }
+
+  const handleSaveTemplate = async () => {
+    setIsSavingTemplate(true)
+    try {
+      const res = await fetch('/api/saved-meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(meal)
+      })
+      if (!res.ok) throw new Error("Failed to save template")
+      alert("Saved as Template!")
+    } catch (err) {
+      console.error(err)
+      alert("Something went wrong.")
+    } finally {
+      setIsSavingTemplate(false)
+    }
   }
 
   const emoji = meal.type === 'breakfast' ? '🍳' : meal.type === 'lunch' ? '🥗' : meal.type === 'dinner' ? '🍲' : '🥨'
@@ -352,10 +371,19 @@ export function MealCard({ meal }) {
       {/* Footer Section */}
       <div className="flex items-center justify-between">
         <span className="text-[13px] text-gray-400 font-medium tracking-wide">
-          {format(new Date(meal.loggedAt), 'HH:mm')}
+          <Clock className="w-4 h-4 inline mr-1 text-gray-300" />
+          {format(new Date(meal.loggedAt), 'h:mm a')}
         </span>
         
-        <div className="flex gap-2">
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={handleSaveTemplate}
+            disabled={isSavingTemplate}
+            className="p-2 text-pink-400 hover:text-pink-500 hover:bg-pink-50 rounded-xl transition-all disabled:opacity-50"
+            title="Save as Template"
+          >
+            <Heart className={`w-4 h-4 ${isSavingTemplate ? 'animate-pulse fill-pink-400' : ''}`} />
+          </button>
           <button onClick={() => setIsEditing(true)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
             <Edit2 className="w-4 h-4" />
           </button>

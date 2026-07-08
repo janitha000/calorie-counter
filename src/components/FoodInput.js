@@ -9,10 +9,19 @@ export function FoodInput() {
   const [textInput, setTextInput] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [mealType, setMealType] = useState('snack')
+  const [templates, setTemplates] = useState([])
 
   const router = useRouter()
 
   useEffect(() => {
+    // Fetch templates on load
+    fetch('/api/saved-meals')
+      .then(res => res.json())
+      .then(data => {
+        if (data.templates) setTemplates(data.templates)
+      })
+      .catch(console.error)
+
     // Auto-select meal type based on time
     const hour = new Date().getHours()
     if (hour >= 5 && hour < 11) setMealType('breakfast')
@@ -88,6 +97,23 @@ export function FoodInput() {
     }
   }
 
+  const handleUseTemplate = async (template) => {
+    setIsProcessing(true)
+    try {
+      await fetch('/api/meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...template, type: mealType })
+      })
+      router.refresh()
+    } catch (error) {
+      console.error(error)
+      alert("Failed to log template.")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-[1.5rem] p-3 shadow-lg shadow-gray-100/50 border border-gray-100 flex flex-col gap-3 relative z-30">
       
@@ -147,6 +173,34 @@ export function FoodInput() {
           {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Log"}
         </button>
       </form>
+
+      {/* Templates Row */}
+      {templates.length > 0 && (
+        <div className="pt-2 border-t border-gray-50 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+          {templates.map(t => (
+            <button
+              key={t.id}
+              onClick={() => handleUseTemplate(t)}
+              disabled={isProcessing}
+              className="whitespace-nowrap px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 rounded-xl text-[11px] font-bold transition-colors disabled:opacity-50 flex items-center gap-1 flex-shrink-0"
+              title={`Log ${t.name} (${t.calories} kcal)`}
+            >
+              <Heart className="w-3 h-3 fill-pink-500" /> {t.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Basic style to hide scrollbar for templates row */}
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   )
 }
