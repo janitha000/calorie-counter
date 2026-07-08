@@ -31,6 +31,7 @@ export async function POST(req) {
     - protein: Number (estimated total protein in grams)
     - carbs: Number (estimated total carbs in grams)
     - fat: Number (estimated total fat in grams)
+    - items: Array of Objects (Optional. If the meal consists of multiple distinct foods, break them down here. Each object must have: name, calories, protein, carbs, fat, servings.)
     
     Do not include markdown blocks or extra text, just the raw JSON object.`;
 

@@ -10,6 +10,7 @@ export async function PUT(req, { params }) {
       where: { id },
       data: {
         name: data.name,
+        items: data.items || null,
         servings: Number(data.servings),
         calories: Number(data.calories),
         protein: Number(data.protein),

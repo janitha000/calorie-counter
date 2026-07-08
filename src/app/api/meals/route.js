@@ -19,6 +19,7 @@ export async function POST(req) {
       data: {
         userId,
         name: data.name || "Unknown Food",
+        items: data.items || null,
         servings: Number(data.servings) || 1,
         calories: Number(data.calories) || 0,
         protein: Number(data.protein) || 0,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Trash2, Edit2, Check, X, AlertTriangle } from 'lucide-react'
+import { Clock, Trash2, Edit2, Check, X, AlertTriangle, Plus } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 
@@ -18,6 +18,7 @@ export function MealCard({ meal }) {
     protein: meal.protein,
     carbs: meal.carbs,
     fat: meal.fat,
+    items: meal.items || []
   })
 
   // Default daily goals for percentages
@@ -57,6 +58,51 @@ export function MealCard({ meal }) {
     }
   }
 
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...editData.items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Auto recalculate totals if items exist
+    const totalCals = newItems.reduce((sum, item) => sum + (Number(item.calories) || 0), 0);
+    const totalProtein = newItems.reduce((sum, item) => sum + (Number(item.protein) || 0), 0);
+    const totalCarbs = newItems.reduce((sum, item) => sum + (Number(item.carbs) || 0), 0);
+    const totalFat = newItems.reduce((sum, item) => sum + (Number(item.fat) || 0), 0);
+
+    setEditData({
+      ...editData,
+      items: newItems,
+      calories: totalCals,
+      protein: totalProtein,
+      carbs: totalCarbs,
+      fat: totalFat
+    });
+  }
+
+  const removeItem = (index) => {
+    const newItems = editData.items.filter((_, i) => i !== index);
+    
+    const totalCals = newItems.reduce((sum, item) => sum + (Number(item.calories) || 0), 0);
+    const totalProtein = newItems.reduce((sum, item) => sum + (Number(item.protein) || 0), 0);
+    const totalCarbs = newItems.reduce((sum, item) => sum + (Number(item.carbs) || 0), 0);
+    const totalFat = newItems.reduce((sum, item) => sum + (Number(item.fat) || 0), 0);
+
+    setEditData({
+      ...editData,
+      items: newItems,
+      calories: totalCals,
+      protein: totalProtein,
+      carbs: totalCarbs,
+      fat: totalFat
+    });
+  }
+
+  const addItem = () => {
+    setEditData({
+      ...editData,
+      items: [...editData.items, { name: "New Item", servings: 1, calories: 0, protein: 0, carbs: 0, fat: 0 }]
+    })
+  }
+
   const emoji = meal.type === 'breakfast' ? '🍳' : meal.type === 'lunch' ? '🥗' : meal.type === 'dinner' ? '🍲' : '🥨'
 
   const MacroColumn = ({ label, value, unit, goal }) => {
@@ -94,28 +140,80 @@ export function MealCard({ meal }) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Servings</label>
-            <input type="number" step="0.1" value={editData.servings} onChange={e => setEditData({...editData, servings: e.target.value})} className="w-full bg-transparent font-bold text-gray-900 outline-none" />
+        {editData.items && editData.items.length > 0 ? (
+          <div className="mb-5 border border-gray-100 rounded-xl overflow-hidden">
+            <div className="bg-gray-50 px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider grid grid-cols-12 gap-2">
+              <div className="col-span-5">Item</div>
+              <div className="col-span-2 text-center">Cal</div>
+              <div className="col-span-1 text-center text-red-500">P</div>
+              <div className="col-span-1 text-center text-blue-500">C</div>
+              <div className="col-span-1 text-center text-orange-500">F</div>
+              <div className="col-span-2 text-right"></div>
+            </div>
+            {editData.items.map((item, index) => (
+              <div key={index} className="px-3 py-2 border-t border-gray-100 flex items-center gap-2">
+                <input 
+                  className="col-span-5 font-semibold text-[13px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  value={item.name}
+                  onChange={e => handleItemChange(index, 'name', e.target.value)}
+                />
+                <input 
+                  type="number"
+                  className="col-span-2 text-center font-bold text-green-600 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  value={item.calories}
+                  onChange={e => handleItemChange(index, 'calories', e.target.value)}
+                />
+                <input 
+                  type="number"
+                  className="col-span-1 text-center font-bold text-red-500 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  value={item.protein}
+                  onChange={e => handleItemChange(index, 'protein', e.target.value)}
+                />
+                <input 
+                  type="number"
+                  className="col-span-1 text-center font-bold text-blue-500 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  value={item.carbs}
+                  onChange={e => handleItemChange(index, 'carbs', e.target.value)}
+                />
+                <input 
+                  type="number"
+                  className="col-span-1 text-center font-bold text-orange-500 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  value={item.fat}
+                  onChange={e => handleItemChange(index, 'fat', e.target.value)}
+                />
+                <button onClick={() => removeItem(index)} className="col-span-2 text-gray-400 hover:text-red-500 ml-auto p-1">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            <button onClick={addItem} className="w-full text-[12px] font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 py-2 flex justify-center items-center gap-1 transition-colors">
+              <Plus className="w-3 h-3" /> Add Item
+            </button>
           </div>
-          <div className="bg-green-50 p-2.5 rounded-xl border border-green-100/50">
-            <label className="text-[10px] text-green-600 font-bold uppercase tracking-wider block mb-1">Calories</label>
-            <input type="number" value={editData.calories} onChange={e => setEditData({...editData, calories: e.target.value})} className="w-full bg-transparent font-bold text-green-700 outline-none" />
+        ) : (
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Servings</label>
+              <input type="number" step="0.1" value={editData.servings} onChange={e => setEditData({...editData, servings: e.target.value})} className="w-full bg-transparent font-bold text-gray-900 outline-none" />
+            </div>
+            <div className="bg-green-50 p-2.5 rounded-xl border border-green-100/50">
+              <label className="text-[10px] text-green-600 font-bold uppercase tracking-wider block mb-1">Calories</label>
+              <input type="number" value={editData.calories} onChange={e => setEditData({...editData, calories: e.target.value})} className="w-full bg-transparent font-bold text-green-700 outline-none" />
+            </div>
+            <div className="bg-red-50 p-2.5 rounded-xl border border-red-100/50">
+              <label className="text-[10px] text-red-500 font-bold uppercase tracking-wider block mb-1">Protein (g)</label>
+              <input type="number" value={editData.protein} onChange={e => setEditData({...editData, protein: e.target.value})} className="w-full bg-transparent font-bold text-red-700 outline-none" />
+            </div>
+            <div className="bg-blue-50 p-2.5 rounded-xl border border-blue-100/50">
+              <label className="text-[10px] text-blue-500 font-bold uppercase tracking-wider block mb-1">Carbs (g)</label>
+              <input type="number" value={editData.carbs} onChange={e => setEditData({...editData, carbs: e.target.value})} className="w-full bg-transparent font-bold text-blue-700 outline-none" />
+            </div>
+            <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-100/50 col-span-2">
+              <label className="text-[10px] text-orange-500 font-bold uppercase tracking-wider block mb-1">Fat (g)</label>
+              <input type="number" value={editData.fat} onChange={e => setEditData({...editData, fat: e.target.value})} className="w-full bg-transparent font-bold text-orange-700 outline-none" />
+            </div>
           </div>
-          <div className="bg-red-50 p-2.5 rounded-xl border border-red-100/50">
-            <label className="text-[10px] text-red-500 font-bold uppercase tracking-wider block mb-1">Protein (g)</label>
-            <input type="number" value={editData.protein} onChange={e => setEditData({...editData, protein: e.target.value})} className="w-full bg-transparent font-bold text-red-700 outline-none" />
-          </div>
-          <div className="bg-blue-50 p-2.5 rounded-xl border border-blue-100/50">
-            <label className="text-[10px] text-blue-500 font-bold uppercase tracking-wider block mb-1">Carbs (g)</label>
-            <input type="number" value={editData.carbs} onChange={e => setEditData({...editData, carbs: e.target.value})} className="w-full bg-transparent font-bold text-blue-700 outline-none" />
-          </div>
-          <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-100/50 col-span-2">
-            <label className="text-[10px] text-orange-500 font-bold uppercase tracking-wider block mb-1">Fat (g)</label>
-            <input type="number" value={editData.fat} onChange={e => setEditData({...editData, fat: e.target.value})} className="w-full bg-transparent font-bold text-orange-700 outline-none" />
-          </div>
-        </div>
+        )}
 
         <div className="flex gap-2">
           <button onClick={handleSave} className="flex-1 bg-gray-900 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors shadow-md shadow-gray-900/10">
@@ -167,6 +265,28 @@ export function MealCard({ meal }) {
       </div>
 
       <div className="h-px w-full bg-gray-100 my-1"></div>
+
+      {/* Optional Items Breakdown */}
+      {meal.items && meal.items.length > 0 && (
+        <>
+          <div className="flex flex-col">
+            {meal.items.map((item, i) => (
+              <div key={i} className="py-2.5 border-b border-gray-50 last:border-0">
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-[14px] font-medium text-gray-800">{item.name}</span>
+                </div>
+                <div className="flex gap-4 text-[11px] font-medium text-gray-500">
+                  <span className="flex items-center gap-1">Calories: <span className="font-bold text-gray-700">{item.calories}</span></span>
+                  <span className="flex items-center gap-1">Carbs: <span className="font-bold text-gray-700">{item.carbs}g</span></span>
+                  <span className="flex items-center gap-1">Protein: <span className="font-bold text-gray-700">{item.protein}g</span></span>
+                  <span className="flex items-center gap-1">Fat: <span className="font-bold text-gray-700">{item.fat}g</span></span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="h-px w-full bg-gray-100 my-1"></div>
+        </>
+      )}
 
       {/* Macros Section */}
       <div className="grid grid-cols-4 gap-4 px-1">
