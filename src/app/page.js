@@ -1,124 +1,176 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Bell, Sparkles, Search, ChevronRight } from "lucide-react";
+import { Bell, Flame, Clock } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { FoodInput } from "@/components/FoodInput";
+import { format } from "date-fns";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const userId = "default_user_janitha";
+  const defaultTdee = 2000;
+
+  // Auto-create or fetch user
+  await prisma.user.upsert({
+    where: { id: userId },
+    update: {},
+    create: {
+      id: userId,
+      name: "Janitha",
+      tdee: defaultTdee,
+    }
+  });
+
+  // Get today's start and end date
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Fetch today's meals
+  const todayMeals = await prisma.meal.findMany({
+    where: {
+      userId: userId,
+      loggedAt: {
+        gte: today,
+        lt: tomorrow
+      }
+    },
+    orderBy: {
+      loggedAt: 'desc'
+    }
+  });
+
+  // Calculate stats
+  const consumedCalories = todayMeals.reduce((acc, meal) => acc + meal.calories, 0);
+  const consumedProtein = todayMeals.reduce((acc, meal) => acc + meal.protein, 0);
+  const consumedCarbs = todayMeals.reduce((acc, meal) => acc + meal.carbs, 0);
+  const consumedFat = todayMeals.reduce((acc, meal) => acc + meal.fat, 0);
+  const remainingCalories = Math.max(0, defaultTdee - consumedCalories);
+
+  // Progress percentage for the ring
+  const progressPercent = Math.min(100, Math.round((consumedCalories / defaultTdee) * 100));
+
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
       {/* Header */}
-      <header className="px-6 pt-12 pb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 shadow-sm border border-white">
-            <Image 
-              src="https://api.dicebear.com/7.x/notionists/svg?seed=Floyd" 
-              alt="User" 
-              width={48} 
-              height={48} 
-            />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Hello</p>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">Floyd Miles</h1>
-          </div>
+      <header className="px-6 pt-12 pb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-[28px] font-extrabold text-gray-900 tracking-tight leading-tight">Hello Janitha</h1>
+          <p className="text-sm text-gray-500 font-medium mt-1">Let's crush your goals today</p>
         </div>
-        <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100 relative">
-          <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+        <button className="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100 relative transition-transform active:scale-95">
+          <Bell className="w-[22px] h-[22px] text-gray-600 stroke-[2.5px]" />
+          <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
         </button>
       </header>
 
-      <main className="flex-1 px-6 space-y-6">
-        {/* Search & Assistant */}
-        <div className="bg-white rounded-full p-2 flex items-center shadow-soft border border-gray-100">
-          <div className="pl-4 flex-1 flex items-center gap-2">
-            <Search className="w-5 h-5 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Describe Your Food" 
-              className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder:text-gray-400"
-            />
-          </div>
-          <Link href="/log" className="bg-[#111827] text-white px-5 py-3 rounded-full flex items-center gap-2 font-medium text-sm hover:bg-gray-800 transition-colors">
-            Assistant <Sparkles className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {/* Pro Banner */}
-        <div className="bg-[#1c211f] rounded-3xl p-6 relative overflow-hidden text-white shadow-lg">
-          <div className="relative z-10 w-2/3">
-            <h2 className="text-xl font-bold mb-2">Get Pro Access</h2>
-            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-              Get 1 month free and unlock all pro features
-            </p>
-            <button className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors">
-              Upgrade Now
-            </button>
-          </div>
-          {/* Decorative Elements */}
-          <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-primary/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-4 right-4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-md z-20">
-            4.9 out of 5 <span className="text-sm">🔥</span>
-          </div>
-          <Image src="/pear.png" alt="Pear" width={160} height={160} className="absolute -right-4 -bottom-6 drop-shadow-2xl opacity-90 z-10" />
-        </div>
-
-        {/* Categories */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Categories</h3>
-            <button className="text-xs text-gray-500 font-medium hover:text-gray-900">See all</button>
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-            {[
-              { name: "Vegan", icon: "🥑" },
-              { name: "Carb", icon: "🥐" },
-              { name: "Protein", icon: "🥚" },
-              { name: "Snacks", icon: "🥨" },
-              { name: "Drink", icon: "🥤" }
-            ].map((cat, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 min-w-[72px]">
-                <div className="w-16 h-16 rounded-full bg-white shadow-soft border border-gray-50 flex items-center justify-center p-3 text-3xl">
-                  {cat.icon}
-                </div>
-                <span className="text-xs font-medium text-gray-600">{cat.name}</span>
+      <main className="flex-1 px-6 space-y-8">
+        
+        {/* Daily Summary Card */}
+        <div className="bg-[#111827] text-white rounded-[2rem] p-6 shadow-2xl relative overflow-hidden">
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 font-semibold text-[13px] uppercase tracking-wider mb-2">Calories Remaining</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-5xl font-extrabold tracking-tight">{remainingCalories}</span>
+                <span className="text-gray-400 font-semibold">/ {defaultTdee} kcal</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Meals (Food Cards) */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Meals</h3>
-          <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-            {/* Card 1 */}
-            <div className="min-w-[200px] bg-white rounded-3xl p-3 shadow-soft border border-gray-100 flex flex-col">
-              <div className="px-2 pt-2">
-                <h4 className="font-bold text-gray-900">Chicken Salad</h4>
-                <p className="text-xs text-gray-500 mt-1 mb-3">480 kcal</p>
-              </div>
-              <div className="w-full h-32 rounded-2xl mb-3 overflow-hidden relative shadow-inner">
-                <Image src="/chicken_salad.png" alt="Chicken Salad" fill className="object-cover" />
-              </div>
-              <button className="bg-[#111827] text-white w-full py-3 rounded-2xl flex justify-center items-center gap-2 text-sm font-medium mt-auto">
-                <span className="opacity-70">🍲</span> Tell me Recipe
-              </button>
             </div>
             
-            {/* Card 2 */}
-            <div className="min-w-[200px] bg-white rounded-3xl p-3 shadow-soft border border-gray-100 flex flex-col">
-              <div className="px-2 pt-2">
-                <h4 className="font-bold text-gray-900">Herb Omelette</h4>
-                <p className="text-xs text-gray-500 mt-1 mb-3">300 kcal</p>
+            {/* Circular Progress (CSS based) */}
+            <div className="relative w-[88px] h-[88px] flex items-center justify-center shrink-0">
+              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-800" />
+                <circle 
+                  cx="50" cy="50" r="40" 
+                  stroke="currentColor" 
+                  strokeWidth="8" 
+                  fill="transparent" 
+                  strokeDasharray="251.2" 
+                  strokeDashoffset={251.2 - (251.2 * progressPercent) / 100}
+                  className="text-green-400 transition-all duration-1000 ease-out" 
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center flex-col">
+                <Flame className="w-[26px] h-[26px] text-green-400 mb-0.5 fill-green-400/20" />
               </div>
-              <div className="w-full h-32 rounded-2xl mb-3 overflow-hidden relative shadow-inner">
-                <Image src="/herb_omelette.png" alt="Herb Omelette" fill className="object-cover" />
-              </div>
-              <button className="bg-[#111827] text-white w-full py-3 rounded-2xl flex justify-center items-center gap-2 text-sm font-medium mt-auto">
-                <span className="opacity-70">🍳</span> Tell me Recipe
-              </button>
             </div>
           </div>
+
+          <div className="mt-8 grid grid-cols-3 gap-3 relative z-10">
+            <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center">
+              <p className="text-[11px] text-gray-400 mb-1 font-bold uppercase tracking-wide">Protein</p>
+              <p className="font-extrabold text-lg">{Math.round(consumedProtein)}<span className="text-[13px] text-gray-400 font-semibold ml-0.5">g</span></p>
+            </div>
+            <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center">
+              <p className="text-[11px] text-gray-400 mb-1 font-bold uppercase tracking-wide">Carbs</p>
+              <p className="font-extrabold text-lg">{Math.round(consumedCarbs)}<span className="text-[13px] text-gray-400 font-semibold ml-0.5">g</span></p>
+            </div>
+            <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center">
+              <p className="text-[11px] text-gray-400 mb-1 font-bold uppercase tracking-wide">Fat</p>
+              <p className="font-extrabold text-lg">{Math.round(consumedFat)}<span className="text-[13px] text-gray-400 font-semibold ml-0.5">g</span></p>
+            </div>
+          </div>
+
+          {/* Decorative background gradients */}
+          <div className="absolute -top-12 -right-12 w-64 h-64 bg-green-500/20 rounded-full blur-[60px]"></div>
+          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-blue-500/10 rounded-full blur-[60px]"></div>
         </div>
+
+        {/* Input Area */}
+        <section className="relative z-20">
+          <FoodInput />
+        </section>
+
+        {/* Today's Entries */}
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Today's Entries</h3>
+            <span className="text-[11px] font-bold text-gray-500 bg-gray-200/60 px-3 py-1.5 rounded-full uppercase tracking-wider">{todayMeals.length} items</span>
+          </div>
+
+          <div className="space-y-3.5">
+            {todayMeals.length === 0 ? (
+              <div className="bg-white border-2 border-dashed border-gray-200 rounded-[2rem] p-10 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                  <span className="text-3xl">🍽️</span>
+                </div>
+                <p className="text-gray-900 font-bold text-lg">No meals logged yet</p>
+                <p className="text-gray-500 font-medium mt-1">Use the camera to snap your first meal!</p>
+              </div>
+            ) : (
+              todayMeals.map((meal) => (
+                <div key={meal.id} className="bg-white p-4 rounded-[24px] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 flex items-center gap-4 transition-transform active:scale-[0.98]">
+                  <div className="w-[52px] h-[52px] bg-gray-50 rounded-[18px] flex flex-col items-center justify-center shrink-0 border border-gray-100 shadow-inner">
+                    <span className="text-[22px]">
+                      {meal.type === 'breakfast' ? '🍳' : meal.type === 'lunch' ? '🥗' : meal.type === 'dinner' ? '🍲' : '🥨'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-[15px] text-gray-900 truncate leading-tight">{meal.name}</h4>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
+                        {meal.calories} kcal
+                      </span>
+                      <span className="text-[11px] text-gray-400 flex items-center gap-1 font-semibold">
+                        <Clock className="w-3 h-3 stroke-[2.5px]" /> {format(meal.loggedAt, 'h:mm a')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 bg-gray-50 p-2.5 rounded-2xl border border-gray-100">
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Macros</p>
+                    <p className="text-[11px] font-bold text-gray-700 flex gap-1.5">
+                      <span className="text-red-500/80">P:{Math.round(meal.protein)}</span> 
+                      <span className="text-blue-500/80">C:{Math.round(meal.carbs)}</span> 
+                      <span className="text-orange-500/80">F:{Math.round(meal.fat)}</span>
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
       </main>
     </div>
   );
