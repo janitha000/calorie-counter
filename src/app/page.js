@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Bell, Flame, Clock } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { FoodInput } from "@/components/FoodInput";
