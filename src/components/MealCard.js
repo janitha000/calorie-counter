@@ -18,6 +18,7 @@ export function MealCard({ meal }) {
     protein: meal.protein,
     carbs: meal.carbs,
     fat: meal.fat,
+    sugar: meal.sugar || 0,
     items: meal.items || []
   })
 
@@ -67,6 +68,7 @@ export function MealCard({ meal }) {
     const totalProtein = newItems.reduce((sum, item) => sum + (Number(item.protein) || 0), 0);
     const totalCarbs = newItems.reduce((sum, item) => sum + (Number(item.carbs) || 0), 0);
     const totalFat = newItems.reduce((sum, item) => sum + (Number(item.fat) || 0), 0);
+    const totalSugar = newItems.reduce((sum, item) => sum + (Number(item.sugar) || 0), 0);
 
     setEditData({
       ...editData,
@@ -74,7 +76,8 @@ export function MealCard({ meal }) {
       calories: totalCals,
       protein: totalProtein,
       carbs: totalCarbs,
-      fat: totalFat
+      fat: totalFat,
+      sugar: totalSugar
     });
   }
 
@@ -85,6 +88,7 @@ export function MealCard({ meal }) {
     const totalProtein = newItems.reduce((sum, item) => sum + (Number(item.protein) || 0), 0);
     const totalCarbs = newItems.reduce((sum, item) => sum + (Number(item.carbs) || 0), 0);
     const totalFat = newItems.reduce((sum, item) => sum + (Number(item.fat) || 0), 0);
+    const totalSugar = newItems.reduce((sum, item) => sum + (Number(item.sugar) || 0), 0);
 
     setEditData({
       ...editData,
@@ -92,14 +96,15 @@ export function MealCard({ meal }) {
       calories: totalCals,
       protein: totalProtein,
       carbs: totalCarbs,
-      fat: totalFat
+      fat: totalFat,
+      sugar: totalSugar
     });
   }
 
   const addItem = () => {
     setEditData({
       ...editData,
-      items: [...editData.items, { name: "New Item", servings: 1, calories: 0, protein: 0, carbs: 0, fat: 0 }]
+      items: [...editData.items, { name: "New Item", servings: 1, calories: 0, protein: 0, carbs: 0, fat: 0, sugar: 0 }]
     })
   }
 
@@ -142,46 +147,53 @@ export function MealCard({ meal }) {
 
         {editData.items && editData.items.length > 0 ? (
           <div className="mb-5 border border-gray-100 rounded-xl overflow-hidden">
-            <div className="bg-gray-50 px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider grid grid-cols-12 gap-2">
-              <div className="col-span-5">Item</div>
-              <div className="col-span-2 text-center">Cal</div>
-              <div className="col-span-1 text-center text-red-500">P</div>
-              <div className="col-span-1 text-center text-blue-500">C</div>
-              <div className="col-span-1 text-center text-orange-500">F</div>
-              <div className="col-span-2 text-right"></div>
+            <div className="bg-gray-50 px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider grid grid-cols-12 gap-1 text-center">
+              <div className="col-span-3 text-left">Item</div>
+              <div className="col-span-2 text-green-600">Cal</div>
+              <div className="col-span-1 text-red-500">P</div>
+              <div className="col-span-1 text-blue-500">C</div>
+              <div className="col-span-1 text-orange-500">F</div>
+              <div className="col-span-2 text-pink-500">Sug</div>
+              <div className="col-span-2"></div>
             </div>
             {editData.items.map((item, index) => (
-              <div key={index} className="px-3 py-2 border-t border-gray-100 flex items-center gap-2">
+              <div key={index} className="px-3 py-2 border-t border-gray-100 grid grid-cols-12 gap-1 items-center">
                 <input 
-                  className="col-span-5 font-semibold text-[13px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  className="col-span-3 font-semibold text-[11px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
                   value={item.name}
                   onChange={e => handleItemChange(index, 'name', e.target.value)}
                 />
                 <input 
                   type="number"
-                  className="col-span-2 text-center font-bold text-green-600 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  className="col-span-2 text-center font-bold text-green-600 text-[11px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
                   value={item.calories}
                   onChange={e => handleItemChange(index, 'calories', e.target.value)}
                 />
                 <input 
                   type="number"
-                  className="col-span-1 text-center font-bold text-red-500 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  className="col-span-1 text-center font-bold text-red-500 text-[11px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
                   value={item.protein}
                   onChange={e => handleItemChange(index, 'protein', e.target.value)}
                 />
                 <input 
                   type="number"
-                  className="col-span-1 text-center font-bold text-blue-500 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  className="col-span-1 text-center font-bold text-blue-500 text-[11px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
                   value={item.carbs}
                   onChange={e => handleItemChange(index, 'carbs', e.target.value)}
                 />
                 <input 
                   type="number"
-                  className="col-span-1 text-center font-bold text-orange-500 text-[12px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  className="col-span-1 text-center font-bold text-orange-500 text-[11px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
                   value={item.fat}
                   onChange={e => handleItemChange(index, 'fat', e.target.value)}
                 />
-                <button onClick={() => removeItem(index)} className="col-span-2 text-gray-400 hover:text-red-500 ml-auto p-1">
+                <input 
+                  type="number"
+                  className="col-span-2 text-center font-bold text-pink-500 text-[11px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  value={item.sugar || 0}
+                  onChange={e => handleItemChange(index, 'sugar', e.target.value)}
+                />
+                <button onClick={() => removeItem(index)} className="col-span-2 text-gray-400 hover:text-red-500 p-1 mx-auto">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -208,9 +220,13 @@ export function MealCard({ meal }) {
               <label className="text-[10px] text-blue-500 font-bold uppercase tracking-wider block mb-1">Carbs (g)</label>
               <input type="number" value={editData.carbs} onChange={e => setEditData({...editData, carbs: e.target.value})} className="w-full bg-transparent font-bold text-blue-700 outline-none" />
             </div>
-            <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-100/50 col-span-2">
+            <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-100/50">
               <label className="text-[10px] text-orange-500 font-bold uppercase tracking-wider block mb-1">Fat (g)</label>
               <input type="number" value={editData.fat} onChange={e => setEditData({...editData, fat: e.target.value})} className="w-full bg-transparent font-bold text-orange-700 outline-none" />
+            </div>
+            <div className="bg-pink-50 p-2.5 rounded-xl border border-pink-100/50 col-span-2">
+              <label className="text-[10px] text-pink-500 font-bold uppercase tracking-wider block mb-1">Sugar (g)</label>
+              <input type="number" value={editData.sugar} onChange={e => setEditData({...editData, sugar: e.target.value})} className="w-full bg-transparent font-bold text-pink-700 outline-none" />
             </div>
           </div>
         )}
@@ -280,6 +296,7 @@ export function MealCard({ meal }) {
                   <span className="flex items-center gap-1">Carbs: <span className="font-bold text-gray-700">{item.carbs}g</span></span>
                   <span className="flex items-center gap-1">Protein: <span className="font-bold text-gray-700">{item.protein}g</span></span>
                   <span className="flex items-center gap-1">Fat: <span className="font-bold text-gray-700">{item.fat}g</span></span>
+                  <span className="flex items-center gap-1">Sugar: <span className="font-bold text-pink-500">{item.sugar || 0}g</span></span>
                 </div>
               </div>
             ))}
@@ -294,6 +311,40 @@ export function MealCard({ meal }) {
         <MacroColumn label="Carbs" value={Math.round(meal.carbs)} unit="g" goal={GOALS.carbs} />
         <MacroColumn label="Protein" value={Math.round(meal.protein)} unit="g" goal={GOALS.protein} />
         <MacroColumn label="Fat" value={Math.round(meal.fat)} unit="g" goal={GOALS.fat} />
+      </div>
+
+      <div className="h-px w-full bg-gray-100 my-1"></div>
+
+      {/* Sugar Meter */}
+      <div className="bg-gray-50 rounded-xl p-3 border border-gray-100/50">
+        <div className="flex justify-between items-end mb-2">
+          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3 text-pink-500" /> Sugar Meter
+          </span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-lg font-black text-gray-900 leading-none">{Math.round(meal.sugar || 0)}</span>
+            <span className="text-[10px] font-bold text-gray-400">g</span>
+          </div>
+        </div>
+        <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden flex">
+          <div className="h-full bg-green-400" style={{ width: '33.33%' }}></div>
+          <div className="h-full bg-yellow-400" style={{ width: '33.33%' }}></div>
+          <div className="h-full bg-red-400" style={{ width: '33.33%' }}></div>
+          
+          {/* Indicator Marker */}
+          <div 
+            className="absolute h-3 w-1 bg-gray-900 rounded-full shadow-sm -mt-0.5 transition-all" 
+            style={{ 
+              marginLeft: `${Math.min(100, ((meal.sugar || 0) / 20) * 100)}%`, // Maxes out at 20g on the visual meter
+              transform: 'translateX(-50%)'
+            }}
+          ></div>
+        </div>
+        <div className="flex justify-between mt-1 text-[9px] font-bold text-gray-400">
+          <span>Safe (&lt;5g)</span>
+          <span>Mod</span>
+          <span>High (&gt;15g)</span>
+        </div>
       </div>
 
       <div className="h-px w-full bg-gray-100 my-1"></div>

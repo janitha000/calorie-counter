@@ -70,6 +70,7 @@ model Meal {
   protein     Float    @default(0)
   carbs       Float    @default(0)
   fat         Float    @default(0)
+  sugar       Float    @default(0)
   image       String?
   type        String   // "breakfast", "lunch", "dinner", "snack"
   loggedAt    DateTime @default(now())

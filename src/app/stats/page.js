@@ -36,10 +36,10 @@ export default async function StatsPage({ searchParams }) {
 
   // Calculate totals by meal type
   const data = {
-    breakfast: { calories: 0, carbs: 0, protein: 0, fat: 0 },
-    lunch: { calories: 0, carbs: 0, protein: 0, fat: 0 },
-    dinner: { calories: 0, carbs: 0, protein: 0, fat: 0 },
-    snack: { calories: 0, carbs: 0, protein: 0, fat: 0 }
+    breakfast: { calories: 0, carbs: 0, protein: 0, fat: 0, sugar: 0 },
+    lunch: { calories: 0, carbs: 0, protein: 0, fat: 0, sugar: 0 },
+    dinner: { calories: 0, carbs: 0, protein: 0, fat: 0, sugar: 0 },
+    snack: { calories: 0, carbs: 0, protein: 0, fat: 0, sugar: 0 }
   };
 
   meals.forEach(meal => {
@@ -48,12 +48,14 @@ export default async function StatsPage({ searchParams }) {
       data[meal.type].carbs += meal.carbs;
       data[meal.type].protein += meal.protein;
       data[meal.type].fat += meal.fat;
+      data[meal.type].sugar += meal.sugar || 0;
     } else {
       // Fallback if type is missing or unknown
       data.snack.calories += meal.calories;
       data.snack.carbs += meal.carbs;
       data.snack.protein += meal.protein;
       data.snack.fat += meal.fat;
+      data.snack.sugar += meal.sugar || 0;
     }
   });
 

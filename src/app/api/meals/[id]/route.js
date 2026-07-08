@@ -16,6 +16,7 @@ export async function PUT(req, { params }) {
         protein: Number(data.protein),
         carbs: Number(data.carbs),
         fat: Number(data.fat),
+        sugar: Number(data.sugar),
       }
     });
 

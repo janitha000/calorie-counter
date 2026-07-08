@@ -66,11 +66,11 @@ export function StatsView({ initialDate, data, tdee }) {
 
       {/* Metric Toggles */}
       <div className="bg-white p-2 rounded-2xl flex gap-1 shadow-sm border border-gray-100">
-        {['calories', 'protein', 'carbs', 'fat'].map(m => (
+        {['calories', 'protein', 'carbs', 'fat', 'sugar'].map(m => (
           <button 
             key={m}
             onClick={() => setMetric(m)}
-            className={`flex-1 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${metric === m ? 'bg-gray-900 text-white shadow-md' : 'bg-transparent text-gray-500 hover:bg-gray-50'}`}
+            className={`flex-1 py-2 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${metric === m ? 'bg-gray-900 text-white shadow-md' : 'bg-transparent text-gray-500 hover:bg-gray-50'}`}
           >
             {m}
           </button>
