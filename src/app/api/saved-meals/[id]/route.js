@@ -3,11 +3,11 @@ import prisma from '@/lib/prisma';
 
 export async function DELETE(req, { params }) {
   try {
-    const { id } = params;
-    const userId = "default_user_janitha"; // hardcoded default user
+    const { id } = await params; // params must be awaited in Next.js 15
+    const userId = "default_user_janitha";
 
-    // Verify ownership and delete
-    await prisma.savedMeal.delete({
+    // deleteMany lets us verify ownership (userId) alongside the id
+    await prisma.savedMeal.deleteMany({
       where: {
         id: id,
         userId: userId,
