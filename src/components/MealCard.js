@@ -218,11 +218,11 @@ export function MealCard({ meal }) {
           <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center shrink-0 border border-gray-100">
             <span className="text-xl">{emoji}</span>
           </div>
-          <input 
-            type="text" 
+          <textarea 
             value={editData.name}
             onChange={e => setEditData({...editData, name: e.target.value})}
-            className="flex-1 font-bold text-lg text-gray-900 border-b-2 border-gray-100 focus:border-gray-900 outline-none pb-1 transition-colors bg-transparent"
+            className="flex-1 font-bold text-base text-gray-900 border-b-2 border-gray-100 focus:border-gray-900 outline-none pb-1 transition-colors bg-transparent resize-none leading-snug"
+            rows={2}
           />
         </div>
 
