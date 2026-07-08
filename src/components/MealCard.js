@@ -21,6 +21,22 @@ export function MealCard({ meal }) {
     carbs: meal.carbs,
     fat: meal.fat,
     sugar: meal.sugar || 0,
+    insight: meal.insight || null,
+    items: meal.items || []
+  })
+
+  // displayData is the source-of-truth for the read-only view.
+  // It's updated immediately after a successful save so the card
+  // reflects changes without waiting for a full server round-trip.
+  const [displayData, setDisplayData] = useState({
+    name: meal.name,
+    servings: meal.servings,
+    calories: meal.calories,
+    protein: meal.protein,
+    carbs: meal.carbs,
+    fat: meal.fat,
+    sugar: meal.sugar || 0,
+    insight: meal.insight || null,
     items: meal.items || []
   })
 
@@ -54,6 +70,9 @@ export function MealCard({ meal }) {
       })
       if (!res.ok) throw new Error('Failed to update')
       
+      // Immediately update the display view so the user sees
+      // their changes without waiting for the server round-trip.
+      setDisplayData({ ...editData })
       setIsEditing(false)
       router.refresh()
     } catch (err) {
@@ -221,7 +240,7 @@ export function MealCard({ meal }) {
             {editData.items.map((item, index) => (
               <div key={index} className="px-3 py-2 border-t border-gray-100 grid grid-cols-12 gap-1 items-center">
                 <input 
-                  className="col-span-3 font-semibold text-[11px] bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
+                  className="col-span-3 font-semibold text-[11px] text-gray-900 bg-transparent outline-none w-full border-b border-transparent focus:border-gray-300"
                   value={item.name}
                   onChange={e => handleItemChange(index, 'name', e.target.value)}
                 />
@@ -348,25 +367,25 @@ export function MealCard({ meal }) {
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="flex justify-between items-start">
-            <h4 className="font-bold text-[15px] text-gray-900 truncate leading-tight">{meal.name}</h4>
+            <h4 className="font-bold text-[15px] text-gray-900 truncate leading-tight">{displayData.name}</h4>
             <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded">
-              {meal.servings} {meal.servings === 1 ? 'srv' : 'srvs'}
+              {displayData.servings} {displayData.servings === 1 ? 'srv' : 'srvs'}
             </span>
           </div>
-          {meal.insight && (
+          {displayData.insight && (
             <p className="text-[10px] text-indigo-500 font-medium italic mt-1 leading-tight flex items-start gap-1 bg-indigo-50/50 p-1 rounded pr-2">
               <Sparkles className="w-3 h-3 shrink-0 mt-[1px]" />
-              {meal.insight}
+              {displayData.insight}
             </p>
           )}
         </div>
       </div>
 
       {/* Optional Items Breakdown */}
-      {meal.items && meal.items.length > 0 && (
+      {displayData.items && displayData.items.length > 0 && (
         <>
           <div className="flex flex-col">
-            {meal.items.map((item, i) => (
+            {displayData.items.map((item, i) => (
               <div key={i} className="py-2.5 border-b border-gray-50 last:border-0">
                 <div className="flex justify-between items-start mb-1">
                   <span className="text-[14px] font-medium text-gray-800">{item.name}</span>
@@ -386,10 +405,10 @@ export function MealCard({ meal }) {
 
       {/* Macros Section */}
       <div className="grid grid-cols-4 gap-4 px-1">
-        <MacroColumn label="Calories" value={meal.calories} unit="" goal={GOALS.calories} />
-        <MacroColumn label="Carbs" value={Math.round(meal.carbs)} unit="g" goal={GOALS.carbs} />
-        <MacroColumn label="Protein" value={Math.round(meal.protein)} unit="g" goal={GOALS.protein} />
-        <MacroColumn label="Fat" value={Math.round(meal.fat)} unit="g" goal={GOALS.fat} />
+        <MacroColumn label="Calories" value={displayData.calories} unit="" goal={GOALS.calories} />
+        <MacroColumn label="Carbs" value={Math.round(displayData.carbs)} unit="g" goal={GOALS.carbs} />
+        <MacroColumn label="Protein" value={Math.round(displayData.protein)} unit="g" goal={GOALS.protein} />
+        <MacroColumn label="Fat" value={Math.round(displayData.fat)} unit="g" goal={GOALS.fat} />
       </div>
 
 
@@ -398,7 +417,7 @@ export function MealCard({ meal }) {
       <div className="bg-gray-50 rounded-xl p-2 border border-gray-100/50 flex flex-col gap-1.5">
         <div className="flex justify-between items-center">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3 text-pink-500" /> Sugar <span className="text-gray-900 ml-1">{Math.round(meal.sugar || 0)}g</span>
+            <AlertTriangle className="w-3 h-3 text-pink-500" /> Sugar <span className="text-gray-900 ml-1">{Math.round(displayData.sugar || 0)}g</span>
           </span>
         </div>
         <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden flex relative">
@@ -410,7 +429,7 @@ export function MealCard({ meal }) {
           <div 
             className="absolute h-2.5 w-1 bg-gray-900 rounded-full shadow-sm -mt-[2px] transition-all" 
             style={{ 
-              marginLeft: `${Math.min(100, ((meal.sugar || 0) / 20) * 100)}%`, // Maxes out at 20g on the visual meter
+              marginLeft: `${Math.min(100, ((displayData.sugar || 0) / 20) * 100)}%`,
               transform: 'translateX(-50%)'
             }}
           ></div>
