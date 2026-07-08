@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Camera, Loader2 } from 'lucide-react'
+import { Search, Camera, Loader2, Heart } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
