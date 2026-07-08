@@ -1,13 +1,10 @@
 export const dynamic = 'force-dynamic';
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+import { generateWithFallback, parseAIJson } from "@/lib/ai";
 
 export async function POST(req) {
   try {
-
     const formData = await req.formData();
     const image = formData.get("image");
 
@@ -17,11 +14,7 @@ export async function POST(req) {
 
     const bytes = await image.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    // Determine mime type from file, fallback to jpeg
     const mimeType = image.type || "image/jpeg";
-
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     const prompt = `Analyze this food image and provide the nutritional information. 
     Format the response strictly as a JSON object with the following keys:
@@ -37,29 +30,15 @@ export async function POST(req) {
     
     Do not include markdown blocks or extra text, just the raw JSON object.`;
 
-    const imageParts = [
-      {
-        inlineData: {
-          data: buffer.toString("base64"),
-          mimeType
-        },
+    const imagePart = {
+      inlineData: {
+        data: buffer.toString("base64"),
+        mimeType,
       },
-    ];
+    };
 
-    let result;
-    try {
-      result = await model.generateContent([prompt, ...imageParts]);
-    } catch (apiError) {
-      console.warn("Primary AI failed (likely rate limit). Falling back to flash...", apiError);
-      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
-      result = await fallbackModel.generateContent([prompt, ...imageParts]);
-    }
-
-    const responseText = result.response.text();
-    
-    // Parse the JSON (clean up any possible markdown if the model hallucinated it)
-    const cleanedText = responseText.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-    const nutritionalInfo = JSON.parse(cleanedText);
+    const responseText = await generateWithFallback([prompt, imagePart]);
+    const nutritionalInfo = parseAIJson(responseText);
 
     return NextResponse.json(nutritionalInfo);
   } catch (error) {

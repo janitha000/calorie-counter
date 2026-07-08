@@ -1,20 +1,15 @@
 export const dynamic = 'force-dynamic';
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+import { generateWithFallback, parseAIJson } from "@/lib/ai";
 
 export async function POST(req) {
   try {
-
     const { text, type } = await req.json();
 
     if (!text) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     let prompt = "";
     if (type === "exercise") {
@@ -41,20 +36,8 @@ export async function POST(req) {
       Do not include any markdown formatting like \`\`\`json or \`\`\` in the response. Just the raw JSON object.`;
     }
 
-    let response;
-    try {
-      response = await model.generateContent(prompt);
-    } catch (apiError) {
-      console.warn("Primary AI failed (likely rate limit). Falling back to flash...", apiError);
-      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
-      response = await fallbackModel.generateContent(prompt);
-    }
-
-    let responseText = response.response.text();
-    
-    // Parse the JSON (clean up any possible markdown if the model hallucinated it)
-    const cleanedText = responseText.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-    const parsedInfo = JSON.parse(cleanedText);
+    const responseText = await generateWithFallback(prompt);
+    const parsedInfo = parseAIJson(responseText);
 
     return NextResponse.json(parsedInfo);
   } catch (error) {

@@ -1,19 +1,15 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { generateWithFallback, parseAIJson } from "@/lib/ai";
 
 export const dynamic = 'force-dynamic';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
 export async function POST(req) {
   try {
-    const { name, items } = await req.json();
+    const { name } = await req.json();
 
-    if (!name || !items || !Array.isArray(items)) {
+    if (!name) {
       return NextResponse.json({ error: "Invalid data provided" }, { status: 400 });
     }
-
-    const itemsListString = items.map(i => `${i.servings} serving(s) of ${i.name}`).join(", ");
 
     const prompt = `
     Analyze this meal description and estimate the nutritional information.
@@ -35,26 +31,12 @@ export async function POST(req) {
     
     Do not include any markdown formatting like \`\`\`json or \`\`\` in the response. Just the raw JSON object.`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
-
-    let response;
-    try {
-      response = await model.generateContent(prompt);
-    } catch (apiError) {
-      console.warn("Primary AI failed (likely rate limit). Falling back to flash lite...", apiError);
-      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
-      response = await fallbackModel.generateContent(prompt);
-    }
-
-    let responseText = response.response.text();
-    
-    // Parse the JSON (clean up any possible markdown if the model hallucinated it)
-    const cleanedText = responseText.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-    const nutritionalInfo = JSON.parse(cleanedText);
+    const responseText = await generateWithFallback(prompt);
+    const nutritionalInfo = parseAIJson(responseText);
 
     return NextResponse.json(nutritionalInfo);
   } catch (error) {
-    console.error("Error analyzing text:", error);
+    console.error("Error analyzing meal:", error);
     return NextResponse.json({ error: "Failed to analyze meal data" }, { status: 500 });
   }
 }
