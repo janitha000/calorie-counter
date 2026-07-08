@@ -29,6 +29,7 @@ export async function POST(req) {
         carbs: Number(data.carbs) || 0,
         fat: Number(data.fat) || 0,
         sugar: Number(data.sugar) || 0,
+        insight: data.insight || null,
       }
     });
 

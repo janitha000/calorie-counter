@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Trash2, Edit2, Check, X, AlertTriangle, Plus, Heart } from 'lucide-react'
+import { Clock, Trash2, Edit2, Check, X, AlertTriangle, Plus, Heart, Sparkles } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 
@@ -286,21 +286,27 @@ export function MealCard({ meal }) {
   }
 
   return (
-    <div className="bg-white p-5 rounded-2xl shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col gap-4">
+    <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2.5 relative">
       {/* Top Header Section */}
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-gray-50 rounded-xl flex flex-col items-center justify-center shrink-0 border border-gray-100 shadow-sm">
-          <span className="text-2xl">{emoji}</span>
+        <div className="w-10 h-10 bg-gray-50 rounded-xl flex flex-col items-center justify-center shrink-0 border border-gray-100 shadow-sm">
+          <span className="text-xl">{emoji}</span>
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
-          <h4 className="font-medium text-[16px] text-gray-900 truncate">{meal.name}</h4>
-          <p className="text-[13px] text-gray-500 mt-0.5 truncate font-medium">
-            {meal.servings} {meal.servings === 1 ? 'serving' : 'servings'}
-          </p>
+          <div className="flex justify-between items-start">
+            <h4 className="font-bold text-[15px] text-gray-900 truncate leading-tight">{meal.name}</h4>
+            <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded">
+              {meal.servings} {meal.servings === 1 ? 'srv' : 'srvs'}
+            </span>
+          </div>
+          {meal.insight && (
+            <p className="text-[10px] text-indigo-500 font-medium italic mt-1 leading-tight flex items-start gap-1 bg-indigo-50/50 p-1 rounded pr-2">
+              <Sparkles className="w-3 h-3 shrink-0 mt-[1px]" />
+              {meal.insight}
+            </p>
+          )}
         </div>
       </div>
-
-      <div className="h-px w-full bg-gray-100 my-1"></div>
 
       {/* Optional Items Breakdown */}
       {meal.items && meal.items.length > 0 && (
@@ -321,7 +327,6 @@ export function MealCard({ meal }) {
               </div>
             ))}
           </div>
-          <div className="h-px w-full bg-gray-100 my-1"></div>
         </>
       )}
 
@@ -333,27 +338,23 @@ export function MealCard({ meal }) {
         <MacroColumn label="Fat" value={Math.round(meal.fat)} unit="g" goal={GOALS.fat} />
       </div>
 
-      <div className="h-px w-full bg-gray-100 my-1"></div>
+
 
       {/* Sugar Meter */}
-      <div className="bg-gray-50 rounded-xl p-3 border border-gray-100/50">
-        <div className="flex justify-between items-end mb-2">
-          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3 text-pink-500" /> Sugar Meter
+      <div className="bg-gray-50 rounded-xl p-2 border border-gray-100/50 flex flex-col gap-1.5">
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3 text-pink-500" /> Sugar <span className="text-gray-900 ml-1">{Math.round(meal.sugar || 0)}g</span>
           </span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black text-gray-900 leading-none">{Math.round(meal.sugar || 0)}</span>
-            <span className="text-[10px] font-bold text-gray-400">g</span>
-          </div>
         </div>
-        <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden flex">
+        <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden flex relative">
           <div className="h-full bg-green-400" style={{ width: '33.33%' }}></div>
           <div className="h-full bg-yellow-400" style={{ width: '33.33%' }}></div>
           <div className="h-full bg-red-400" style={{ width: '33.33%' }}></div>
           
           {/* Indicator Marker */}
           <div 
-            className="absolute h-3 w-1 bg-gray-900 rounded-full shadow-sm -mt-0.5 transition-all" 
+            className="absolute h-2.5 w-1 bg-gray-900 rounded-full shadow-sm -mt-[2px] transition-all" 
             style={{ 
               marginLeft: `${Math.min(100, ((meal.sugar || 0) / 20) * 100)}%`, // Maxes out at 20g on the visual meter
               transform: 'translateX(-50%)'
@@ -367,12 +368,12 @@ export function MealCard({ meal }) {
         </div>
       </div>
 
-      <div className="h-px w-full bg-gray-100 my-1"></div>
+
 
       {/* Footer Section */}
-      <div className="flex items-center justify-between">
-        <span className="text-[13px] text-gray-400 font-medium tracking-wide">
-          <Clock className="w-4 h-4 inline mr-1 text-gray-300" />
+      <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+        <span className="text-[11px] text-gray-400 font-bold tracking-wide">
+          <Clock className="w-3 h-3 inline mr-1 text-gray-300" />
           {format(new Date(meal.loggedAt), 'h:mm a')}
         </span>
         

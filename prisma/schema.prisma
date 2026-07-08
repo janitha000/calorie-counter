@@ -71,6 +71,7 @@ model Meal {
   carbs       Float    @default(0)
   fat         Float    @default(0)
   sugar       Float    @default(0)
+  insight     String?
   image       String?
   type        String   // "breakfast", "lunch", "dinner", "snack"
   loggedAt    DateTime @default(now())
@@ -87,6 +88,7 @@ model SavedMeal {
   carbs       Float    @default(0)
   fat         Float    @default(0)
   sugar       Float    @default(0)
+  insight     String?
 }
 
 model DailyStats {

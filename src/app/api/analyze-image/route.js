@@ -32,6 +32,7 @@ export async function POST(req) {
     - carbs: Number (estimated total carbs in grams)
     - fat: Number (estimated total fat in grams)
     - sugar: Number (estimated total sugar in grams)
+    - insight: String (A 30-50 character short, punchy insight evaluating the meal's nutrition, e.g. "High protein, but watch the sugar spike!" or "Great source of healthy fats!")
     - items: Array of Objects (Optional. If the meal consists of multiple distinct foods, break them down here. Each object must have: name, calories, protein, carbs, fat, sugar, servings.)
     
     Do not include markdown blocks or extra text, just the raw JSON object.`;
