@@ -108,4 +108,5 @@ model FastingLog {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   startTime   DateTime
   endTime     DateTime?
+  duration    Int?
 }

@@ -130,31 +130,38 @@ export function MealCard({ meal }) {
   }
 
   const handleReanalyze = async () => {
-    if (!editData.items || editData.items.length === 0) {
-      alert("No items to analyze!");
-      return;
-    }
     setIsReanalyzing(true)
     try {
+      // Build items list: use existing items array, or fall back to the meal name itself
+      const itemsToSend = (editData.items && editData.items.length > 0)
+        ? editData.items
+        : [{ name: editData.name, servings: editData.servings || 1 }]
+
       const res = await fetch('/api/reanalyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editData.name, items: editData.items })
+        body: JSON.stringify({ name: editData.name, items: itemsToSend })
       })
       if (!res.ok) throw new Error("Failed to reanalyze")
       
       const newMetrics = await res.json()
-      setEditData({
-        ...editData,
-        name: newMetrics.name || editData.name,
+
+      // Ensure returned items are properly formed before replacing
+      const updatedItems = (newMetrics.items && newMetrics.items.length > 0)
+        ? newMetrics.items
+        : editData.items
+
+      setEditData(prev => ({
+        ...prev,
+        name: newMetrics.name || prev.name,
         calories: newMetrics.calories,
         protein: newMetrics.protein,
         carbs: newMetrics.carbs,
         fat: newMetrics.fat,
         sugar: newMetrics.sugar,
         insight: newMetrics.insight,
-        items: newMetrics.items || editData.items
-      })
+        items: updatedItems,
+      }))
     } catch (err) {
       console.error(err)
       alert("Failed to re-analyze with AI.")
