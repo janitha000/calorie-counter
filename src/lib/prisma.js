@@ -5,11 +5,7 @@ import { PrismaClient } from '@prisma/client'
 const connectionString = process.env.DATABASE_URL || ''
 
 const prismaClientSingleton = () => {
-  if (!connectionString) {
-    // Return a dummy client if no DB URL is present during build time
-    return new PrismaClient()
-  }
-  const pool = new Pool({ connectionString })
+  const pool = new Pool({ connectionString: connectionString || 'postgresql://dummy:dummy@localhost:5432/dummy' })
   const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter })
 }
