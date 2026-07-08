@@ -11,6 +11,7 @@ export function MealCard({ meal }) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
+  const [isReanalyzing, setIsReanalyzing] = useState(false)
   
   const [editData, setEditData] = useState({
     name: meal.name,
@@ -125,6 +126,40 @@ export function MealCard({ meal }) {
       alert("Something went wrong.")
     } finally {
       setIsSavingTemplate(false)
+    }
+  }
+
+  const handleReanalyze = async () => {
+    if (!editData.items || editData.items.length === 0) {
+      alert("No items to analyze!");
+      return;
+    }
+    setIsReanalyzing(true)
+    try {
+      const res = await fetch('/api/reanalyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editData.name, items: editData.items })
+      })
+      if (!res.ok) throw new Error("Failed to reanalyze")
+      
+      const newMetrics = await res.json()
+      setEditData({
+        ...editData,
+        name: newMetrics.name || editData.name,
+        calories: newMetrics.calories,
+        protein: newMetrics.protein,
+        carbs: newMetrics.carbs,
+        fat: newMetrics.fat,
+        sugar: newMetrics.sugar,
+        insight: newMetrics.insight,
+        items: newMetrics.items || editData.items
+      })
+    } catch (err) {
+      console.error(err)
+      alert("Failed to re-analyze with AI.")
+    } finally {
+      setIsReanalyzing(false)
     }
   }
 
@@ -250,6 +285,18 @@ export function MealCard({ meal }) {
             </div>
           </div>
         )}
+
+        <button 
+          onClick={handleReanalyze} 
+          disabled={isReanalyzing}
+          className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors mb-3 border border-indigo-100 disabled:opacity-50"
+        >
+          {isReanalyzing ? (
+            <span className="flex items-center gap-2"><span className="animate-spin text-lg">⚙️</span> Analyzing...</span>
+          ) : (
+            <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 fill-indigo-500" /> Re-Analyze with AI</span>
+          )}
+        </button>
 
         <div className="flex gap-2">
           <button onClick={handleSave} className="flex-1 bg-gray-900 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors shadow-md shadow-gray-900/10">

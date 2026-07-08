@@ -17,6 +17,7 @@ export async function PUT(req, { params }) {
         carbs: Number(data.carbs),
         fat: Number(data.fat),
         sugar: Number(data.sugar),
+        insight: data.insight || null,
       }
     });
 
