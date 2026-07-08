@@ -14,7 +14,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     let prompt = "";
     if (type === "exercise") {
