@@ -119,6 +119,7 @@ export function MealCard({ meal }) {
       })
       if (!res.ok) throw new Error("Failed to save template")
       alert("Saved as Template!")
+      window.location.reload() // Refresh to update FoodInput templates
     } catch (err) {
       console.error(err)
       alert("Something went wrong.")
