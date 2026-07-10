@@ -3,8 +3,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const MODEL_PRIORITY = [
-  "gemini-3.5-flash",
-  "gemini-3.0-flash",
   "gemini-2.5-flash",
   "gemini-3.1-flash-lite",
   "gemini-2.5-flash-lite",
