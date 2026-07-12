@@ -358,6 +358,11 @@ export function MealCard({ meal }) {
     )
   }
 
+  const sugarVal = displayData.sugar || 0;
+  let sugarColor = 'bg-green-400';
+  if (sugarVal > 15) sugarColor = 'bg-red-400';
+  else if (sugarVal >= 5) sugarColor = 'bg-yellow-400';
+
   return (
     <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2.5 relative">
       {/* Top Header Section */}
@@ -367,10 +372,13 @@ export function MealCard({ meal }) {
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="flex justify-between items-start">
-            <h4 className="font-bold text-[15px] text-gray-900 truncate leading-tight">{displayData.name}</h4>
-            <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded">
-              {displayData.servings} {displayData.servings === 1 ? 'srv' : 'srvs'}
-            </span>
+            <h4 className="font-bold text-[15px] text-gray-900 truncate leading-tight pr-2">{displayData.name}</h4>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className={`w-2 h-2 rounded-full shadow-sm ${sugarColor}`} title={`Sugar: ${sugarVal}g`} />
+              <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded">
+                {displayData.servings} {displayData.servings === 1 ? 'srv' : 'srvs'}
+              </span>
+            </div>
           </div>
           {displayData.insight && (
             <p className="text-[10px] text-indigo-500 font-medium italic mt-1 leading-tight flex items-start gap-1 bg-indigo-50/50 p-1 rounded pr-2">
@@ -412,34 +420,6 @@ export function MealCard({ meal }) {
       </div>
 
 
-
-      {/* Sugar Meter */}
-      <div className="bg-gray-50 rounded-xl p-2 border border-gray-100/50 flex flex-col gap-1.5">
-        <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3 text-pink-500" /> Sugar <span className="text-gray-900 ml-1">{Math.round(displayData.sugar || 0)}g</span>
-          </span>
-        </div>
-        <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden flex relative">
-          <div className="h-full bg-green-400" style={{ width: '33.33%' }}></div>
-          <div className="h-full bg-yellow-400" style={{ width: '33.33%' }}></div>
-          <div className="h-full bg-red-400" style={{ width: '33.33%' }}></div>
-          
-          {/* Indicator Marker */}
-          <div 
-            className="absolute h-2.5 w-1 bg-gray-900 rounded-full shadow-sm -mt-[2px] transition-all" 
-            style={{ 
-              marginLeft: `${Math.min(100, ((displayData.sugar || 0) / 20) * 100)}%`,
-              transform: 'translateX(-50%)'
-            }}
-          ></div>
-        </div>
-        <div className="flex justify-between mt-1 text-[9px] font-bold text-gray-400">
-          <span>Safe (&lt;5g)</span>
-          <span>Mod</span>
-          <span>High (&gt;15g)</span>
-        </div>
-      </div>
 
 
 

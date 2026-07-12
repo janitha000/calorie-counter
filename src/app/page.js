@@ -51,6 +51,12 @@ export default async function Dashboard() {
   const consumedFat = todayMeals.reduce((acc, meal) => acc + meal.fat, 0);
   const calorieDiff = defaultTdee - consumedCalories;
   
+  // Fetch absolutely latest meal for fasting tracker
+  const latestMeal = await prisma.meal.findFirst({
+    where: { userId: userId },
+    orderBy: { loggedAt: 'desc' }
+  });
+
   // Progress percentage for the ring/bar
   const progressPercent = Math.min(100, Math.round((consumedCalories / defaultTdee) * 100));
 
