@@ -13,13 +13,13 @@ export function StatsView({ initialDate, data, tdee }) {
   const handlePrevDay = () => {
     const newDate = subDays(currentDate, 1);
     setCurrentDate(newDate);
-    router.replace(`/stats?date=${newDate.toISOString()}`);
+    router.replace(`/summary?date=${newDate.toISOString()}`);
   };
 
   const handleNextDay = () => {
     const newDate = addDays(currentDate, 1);
     setCurrentDate(newDate);
-    router.replace(`/stats?date=${newDate.toISOString()}`);
+    router.replace(`/summary?date=${newDate.toISOString()}`);
   };
 
   // Calculate totals for the selected metric
