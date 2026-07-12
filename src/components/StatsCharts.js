@@ -48,10 +48,10 @@ export function StatsCharts({ data, range, limits }) {
           <div className={`min-w-full h-full flex items-end justify-between ${range === 'monthly' ? 'w-[800px] gap-2' : 'gap-4'} relative`}>
             {/* Target Line */}
             <div 
-              className="absolute w-full border-t-2 border-dashed border-gray-300 z-0 flex items-center justify-start pointer-events-none"
+              className="absolute w-full border-t-2 border-dashed border-black z-20 flex items-center justify-start pointer-events-none"
               style={{ bottom: `${targetPercent}%` }}
             >
-              <span className="text-[9px] text-gray-400 font-bold bg-white px-1 -mt-3 absolute left-0 z-10">Target</span>
+              <span className="text-[9px] text-white font-bold bg-black px-1.5 py-0.5 rounded -mt-3 absolute left-0 z-30">Target</span>
             </div>
 
             {data.map((day, i) => {
@@ -61,7 +61,7 @@ export function StatsCharts({ data, range, limits }) {
 
               return (
                 <div key={i} className="flex flex-col items-center gap-2 relative z-10 flex-1 min-w-[20px] group">
-                  <div className="text-[9px] font-bold text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4 bg-white/90 z-20">
+                  <div className="text-[8px] font-bold text-gray-500 absolute -top-4 bg-white/90 z-20 px-0.5 rounded">
                     {val > 0 ? (Number.isInteger(val) ? val : val.toFixed(1)) : ''}
                   </div>
                   <div className="w-full bg-gray-50 rounded-t-md relative overflow-hidden" style={{ height: '120px' }}>
