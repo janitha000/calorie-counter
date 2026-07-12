@@ -49,16 +49,16 @@ export default async function Dashboard() {
   const consumedProtein = todayMeals.reduce((acc, meal) => acc + meal.protein, 0);
   const consumedCarbs = todayMeals.reduce((acc, meal) => acc + meal.carbs, 0);
   const consumedFat = todayMeals.reduce((acc, meal) => acc + meal.fat, 0);
-  const remainingCalories = Math.max(0, defaultTdee - consumedCalories);
-
-  // Fetch absolutely latest meal for fasting tracker
-  const latestMeal = await prisma.meal.findFirst({
-    where: { userId: userId },
-    orderBy: { loggedAt: 'desc' }
-  });
-
-  // Progress percentage for the ring
+  const calorieDiff = defaultTdee - consumedCalories;
+  
+  // Progress percentage for the ring/bar
   const progressPercent = Math.min(100, Math.round((consumedCalories / defaultTdee) * 100));
+
+  const getCalorieColor = (prefix = 'bg') => {
+    if (consumedCalories <= defaultTdee) return `${prefix}-green-400`;
+    if (consumedCalories <= defaultTdee * 1.2) return `${prefix}-orange-400`;
+    return `${prefix}-red-400`;
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
@@ -79,10 +79,12 @@ export default async function Dashboard() {
                 </div>
               </div>
               <div className="flex flex-col items-end">
-                <span className={`text-2xl font-black tracking-tight ${remainingCalories === 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {remainingCalories}
+                <span className={`text-2xl font-black tracking-tight ${getCalorieColor('text')}`}>
+                  {Math.abs(calorieDiff)}
                 </span>
-                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">kcal left</span>
+                <span className={`text-[9px] font-bold uppercase tracking-wider ${calorieDiff < 0 ? getCalorieColor('text') : 'text-gray-400'}`}>
+                  {calorieDiff >= 0 ? 'kcal left' : 'kcal over'}
+                </span>
               </div>
             </div>
 
@@ -90,13 +92,15 @@ export default async function Dashboard() {
             <div className="mb-4">
               <div className="h-3 w-full bg-gray-800 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${progressPercent >= 100 ? 'bg-red-400' : progressPercent >= 80 ? 'bg-yellow-400' : 'bg-green-400'}`}
+                  className={`h-full rounded-full transition-all duration-700 ${getCalorieColor('bg')}`}
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
               <div className="flex justify-between mt-1">
                 <span className="text-[9px] text-gray-500 font-bold">0</span>
-                <span className="text-[9px] text-gray-500 font-bold">{progressPercent}%</span>
+                <span className={`text-[9px] font-bold ${calorieDiff < 0 ? getCalorieColor('text') : 'text-gray-500'}`}>
+                  {Math.round((consumedCalories / defaultTdee) * 100)}%
+                </span>
                 <span className="text-[9px] text-gray-500 font-bold">{defaultTdee}</span>
               </div>
             </div>
@@ -104,22 +108,36 @@ export default async function Dashboard() {
             {/* Macros row */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Protein', consumed: Math.round(consumedProtein), goal: 135, color: 'bg-red-400', track: 'bg-red-900/40' },
-                { label: 'Carbs',   consumed: Math.round(consumedCarbs),   goal: 135, color: 'bg-blue-400', track: 'bg-blue-900/40' },
-                { label: 'Fat',     consumed: Math.round(consumedFat),     goal: 58,  color: 'bg-orange-400', track: 'bg-orange-900/40' },
-              ].map(({ label, consumed, goal, color, track }) => {
+                { label: 'Protein', consumed: Math.round(consumedProtein), goal: 135 },
+                { label: 'Carbs',   consumed: Math.round(consumedCarbs),   goal: 135 },
+                { label: 'Fat',     consumed: Math.round(consumedFat),     goal: 58 },
+              ].map(({ label, consumed, goal }) => {
                 const pct = Math.min(100, Math.round((consumed / goal) * 100));
-                const remaining = Math.max(0, goal - consumed);
+                const diff = goal - consumed;
+                const statusText = diff >= 0 ? `${diff}g left` : `${Math.abs(diff)}g over`;
+                
+                let color = 'bg-gray-400';
+                let textColor = 'text-gray-400';
+                if (label === 'Protein') {
+                  if (consumed >= goal) { color = 'bg-green-400'; textColor = 'text-green-400'; }
+                  else if (consumed >= goal * 0.8) { color = 'bg-orange-400'; textColor = 'text-orange-400'; }
+                  else { color = 'bg-red-400'; textColor = 'text-red-400'; }
+                } else {
+                  if (consumed <= goal) { color = 'bg-green-400'; textColor = 'text-green-400'; }
+                  else if (consumed <= goal * 1.2) { color = 'bg-orange-400'; textColor = 'text-orange-400'; }
+                  else { color = 'bg-red-400'; textColor = 'text-red-400'; }
+                }
+
                 return (
                   <div key={label}>
                     <div className="flex justify-between items-baseline mb-1">
                       <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">{label}</span>
                       <span className="text-[10px] font-bold text-gray-300">{consumed}g</span>
                     </div>
-                    <div className={`h-1.5 w-full ${track} rounded-full overflow-hidden`}>
+                    <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
                       <div className={`h-full ${color} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
                     </div>
-                    <p className="text-[9px] text-gray-500 font-medium mt-0.5">{remaining}g left</p>
+                    <p className={`text-[9px] font-bold mt-0.5 ${diff < 0 ? textColor : 'text-gray-500'}`}>{statusText}</p>
                   </div>
                 );
               })}
