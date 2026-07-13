@@ -6,9 +6,12 @@ import { FoodInput } from "@/components/FoodInput";
 import { MealCard } from "@/components/MealCard";
 import { FastingTracker } from "@/components/FastingTracker";
 import { FastingWidget } from "@/components/FastingWidget";
+import { SwipeableContainer } from "@/components/SwipeableContainer";
 import { format } from "date-fns";
 
-export default async function Dashboard() {
+export default async function Dashboard(props) {
+  const searchParams = await props.searchParams;
+  const dateParam = searchParams?.date;
   const userId = "default_user_janitha";
   const defaultTdee = 1600;
 
@@ -24,7 +27,12 @@ export default async function Dashboard() {
   });
 
   // Get today's start and end date
-  const today = new Date();
+  let today = new Date();
+  if (dateParam) {
+    // parse date string in local timezone
+    const [year, month, day] = dateParam.split('-');
+    today = new Date(year, month - 1, day);
+  }
   today.setHours(0, 0, 0, 0);
   
   const tomorrow = new Date(today);
@@ -67,7 +75,7 @@ export default async function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
+    <SwipeableContainer currentDate={dateParam || format(new Date(), 'yyyy-MM-dd')} className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
       {/* Removed Header for cleaner look */}
 
       <main className="flex-1 px-4 pt-6 space-y-6">
@@ -78,7 +86,9 @@ export default async function Dashboard() {
             {/* Header row */}
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-gray-400 font-semibold text-[10px] uppercase tracking-widest">Daily Calories</p>
+                <p className="text-gray-400 font-semibold text-[10px] uppercase tracking-widest">
+                  {dateParam ? format(today, 'MMM d, yyyy') : 'Daily Calories'}
+                </p>
                 <div className="flex items-baseline gap-1.5 mt-0.5">
                   <span className="text-3xl font-black tracking-tight">{consumedCalories}</span>
                   <span className="text-gray-500 font-bold text-sm">/ {defaultTdee} kcal</span>
@@ -166,7 +176,9 @@ export default async function Dashboard() {
         {/* Today's Entries */}
         <section className="relative z-20">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[18px] font-extrabold text-gray-900 tracking-tight">Today's Entries</h3>
+            <h3 className="text-[18px] font-extrabold text-gray-900 tracking-tight">
+              {dateParam ? format(today, 'MMM d') + ' Entries' : "Today's Entries"}
+            </h3>
             <span className="text-[10px] font-bold text-gray-500 bg-gray-200/60 px-2.5 py-1 rounded-full uppercase tracking-wider">{todayMeals.length} items</span>
           </div>
 
@@ -188,6 +200,6 @@ export default async function Dashboard() {
         </section>
 
       </main>
-    </div>
+    </SwipeableContainer>
   );
 }
