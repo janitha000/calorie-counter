@@ -8,18 +8,35 @@ export default async function Dashboard(props) {
   const searchParams = await props.searchParams;
   const dateParam = searchParams?.date;
   const userId = "default_user_janitha";
-  const defaultTdee = 1600;
+  const defaultGoals = {
+    calories: 2200,
+    protein: 155,
+    carbs: 235,
+    fat: 65,
+    sugar: 35,
+    water: 8,
+  };
 
-  // Auto-create or fetch user
-  await prisma.user.upsert({
+  // Auto-create or fetch user with persisted goals
+  const user = await prisma.user.upsert({
     where: { id: userId },
     update: {},
     create: {
       id: userId,
       name: "Janitha",
-      tdee: defaultTdee,
+      tdee: defaultGoals.calories,
+      goal: JSON.stringify(defaultGoals),
     }
   });
+
+  let initialGoals = { ...defaultGoals };
+  if (user?.goal) {
+    try {
+      initialGoals = { ...initialGoals, ...JSON.parse(user.goal) };
+    } catch (e) {}
+  } else if (user?.tdee) {
+    initialGoals.calories = user.tdee;
+  }
 
   // Calculate day range
   let today = new Date();
@@ -77,7 +94,7 @@ export default async function Dashboard(props) {
       <div className="sr-only" aria-hidden="true" data-testid="life-ops-rsc-sync">
         <span>Daily Calories</span>
         <span className="text-3xl font-black tracking-tight">{consumedCalories}</span>
-        <span>/ {defaultTdee} kcal</span>
+        <span>/ {initialGoals.calories} kcal</span>
         <span>Protein</span>
         <span>{consumedProtein}g</span>
         <span>Carbs</span>
@@ -90,13 +107,14 @@ export default async function Dashboard(props) {
       {/* Tactile Mobile Interface */}
       <TactileDashboard
         initialMeals={todayMeals}
+        initialGoals={initialGoals}
         dateParam={dateParam}
         consumedCalories={consumedCalories}
         consumedProtein={consumedProtein}
         consumedCarbs={consumedCarbs}
         consumedFat={consumedFat}
         consumedSugar={consumedSugar}
-        defaultTdee={defaultTdee}
+        defaultTdee={initialGoals.calories}
         latestMealLoggedAt={fallbackStartTime}
       />
     </>

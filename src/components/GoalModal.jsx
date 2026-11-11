@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 
 export function GoalModal({
@@ -17,6 +17,19 @@ export function GoalModal({
     sugar: goals?.sugar || 35,
     water: goals?.water || 8,
   });
+
+  useEffect(() => {
+    if (goals) {
+      setForm({
+        calories: goals.calories || 2200,
+        protein: goals.protein || 155,
+        carbs: goals.carbs || 235,
+        fat: goals.fat || 65,
+        sugar: goals.sugar || 35,
+        water: goals.water || 8,
+      });
+    }
+  }, [goals, isOpen]);
 
   if (!isOpen) return null;
 

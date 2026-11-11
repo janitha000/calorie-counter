@@ -12,13 +12,14 @@ import { SwipeableContainer } from './SwipeableContainer';
 
 export function TactileDashboard({
   initialMeals = [],
+  initialGoals,
   dateParam,
   consumedCalories,
   consumedProtein,
   consumedCarbs,
   consumedFat,
   consumedSugar,
-  defaultTdee = 1600,
+  defaultTdee = 2200,
   latestMealLoggedAt,
 }) {
   const router = useRouter();
@@ -36,23 +37,34 @@ export function TactileDashboard({
   const [waterGlasses, setWaterGlasses] = useState(6);
 
   // Targets / Goals state (calibrated to 2,200 kcal, 155g P, 235g C, 65g F, 35g Sugar)
-  const [goals, setGoals] = useState({
-    calories: defaultTdee || 2200,
-    protein: 155,
-    carbs: 235,
-    fat: 65,
-    sugar: 35,
-    water: 8,
+  const [goals, setGoals] = useState(() => {
+    return initialGoals || {
+      calories: defaultTdee || 2200,
+      protein: 155,
+      carbs: 235,
+      fat: 65,
+      sugar: 35,
+      water: 8,
+    };
   });
 
   // PWA install prompt state
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [canInstallPWA, setCanInstallPWA] = useState(false);
 
-  // Sync meals if server props change
+  // Sync meals and goals if server props change
   useEffect(() => {
     setMeals(initialMeals);
   }, [initialMeals]);
+
+  useEffect(() => {
+    if (initialGoals) {
+      setGoals(initialGoals);
+      try {
+        localStorage.setItem('macro_goals', JSON.stringify(initialGoals));
+      } catch (e) {}
+    }
+  }, [initialGoals]);
 
   // Initial client effects: theme, water, pwa, target meal by time
   useEffect(() => {
@@ -130,10 +142,23 @@ export function TactileDashboard({
     localStorage.setItem(`water_${dateKey}`, next.toString());
   };
 
-  // Goals update
-  const handleSaveGoals = (newGoals) => {
+  // Goals update (persisted to both localStorage and PostgreSQL)
+  const handleSaveGoals = async (newGoals) => {
     setGoals(newGoals);
-    localStorage.setItem('macro_goals', JSON.stringify(newGoals));
+    try {
+      localStorage.setItem('macro_goals', JSON.stringify(newGoals));
+    } catch (e) {}
+
+    try {
+      await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGoals),
+      });
+      router.refresh();
+    } catch (err) {
+      console.error('Failed to persist targets to database:', err);
+    }
   };
 
   // PWA install trigger
