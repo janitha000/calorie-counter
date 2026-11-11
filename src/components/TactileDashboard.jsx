@@ -173,6 +173,14 @@ export function TactileDashboard({
   const liveFat = meals.reduce((acc, m) => acc + (m.fat || 0), 0);
   const liveSugar = meals.reduce((acc, m) => acc + (m.sugar || 0), 0);
 
+  // Chronological meals to determine fast broken (>0g sugar)
+  const sortedChronologicalMeals = [...meals].sort(
+    (a, b) => new Date(a.loggedAt) - new Date(b.loggedAt)
+  );
+  const fastBrokenMeal = sortedChronologicalMeals.find(
+    (m) => Number(m.sugar || 0) > 0
+  );
+
   return (
     <div className="min-h-screen bg-[#f7f5f0] dark:bg-[#0e0d0c] text-[#1c1917] dark:text-[#ede9e6] flex flex-col transition-colors pb-20">
       {/* 1. Sticky Top HUD */}
@@ -189,6 +197,7 @@ export function TactileDashboard({
         sugar={liveSugar}
         sugarLimit={goals.sugar}
         fastingStartTime={latestMealLoggedAt}
+        fastBrokenMeal={fastBrokenMeal}
         isDark={isDark}
         onToggleTheme={toggleTheme}
         canInstallPWA={canInstallPWA}

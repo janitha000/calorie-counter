@@ -49,6 +49,14 @@ export function MealStream({
     snack: meals.filter(m => m.type === 'snack' || !['breakfast', 'lunch', 'dinner'].includes(m.type)),
   };
 
+  // Sort all today's meals chronologically to find the exact meal that broke the fast (>0g sugar)
+  const sortedChronologicalMeals = [...meals].sort(
+    (a, b) => new Date(a.loggedAt) - new Date(b.loggedAt)
+  );
+  const fastBrokenMeal = sortedChronologicalMeals.find(
+    (m) => Number(m.sugar || 0) > 0
+  );
+
   return (
     <div className="space-y-4 px-4 py-2">
       {Object.entries(MEAL_CONFIG).map(([type, cfg]) => {
@@ -62,10 +70,17 @@ export function MealStream({
         const totalF = Math.round(typeMeals.reduce((acc, m) => acc + (m.fat || 0), 0));
         const totalSugar = Math.round(typeMeals.reduce((acc, m) => acc + (m.sugar || 0), 0));
 
-        // Time tag from earliest or latest meal in bay
+        // Latest meal in bay for time reference
         const earliestMeal = typeMeals.length > 0 
           ? [...typeMeals].sort((a, b) => new Date(a.loggedAt) - new Date(b.loggedAt))[0] 
           : null;
+        const latestMeal = typeMeals.length > 0 
+          ? [...typeMeals].sort((a, b) => new Date(b.loggedAt) - new Date(a.loggedAt))[0] 
+          : null;
+
+        // Check if fast was broken in this specific bay (>0 sugar)
+        const isFastBrokenInThisBay = fastBrokenMeal && typeMeals.some(m => m.id === fastBrokenMeal.id);
+        const hasZeroSugarOnly = typeMeals.length > 0 && typeMeals.every(m => Number(m.sugar || 0) <= 0);
 
         return (
           <section
@@ -89,15 +104,20 @@ export function MealStream({
                       ({typeMeals.length})
                     </span>
                   </div>
-                  {/* Subtle contextual tags */}
-                  {type === 'breakfast' && earliestMeal && (
+                  {/* Fasting status tag: ONLY when >0 sugar */}
+                  {isFastBrokenInThisBay && (
                     <span className="text-[10px] text-[#10b981] font-mono block">
-                      Fast broken at {format(new Date(earliestMeal.loggedAt), 'h:mm a')}
+                      Fast broken at {format(new Date(fastBrokenMeal.loggedAt), 'h:mm a')}
                     </span>
                   )}
-                  {type === 'dinner' && earliestMeal && (
+                  {!fastBrokenMeal && hasZeroSugarOnly && (
+                    <span className="text-[10px] text-[#84cc16] font-mono block">
+                      Fasting intact • 0g sugar
+                    </span>
+                  )}
+                  {type === 'dinner' && latestMeal && !isFastBrokenInThisBay && (
                     <span className="text-[10px] text-[#ea580c] font-mono block">
-                      Logged at {format(new Date(earliestMeal.loggedAt), 'h:mm a')}
+                      Last bite at {format(new Date(latestMeal.loggedAt), 'h:mm a')}
                     </span>
                   )}
                 </div>

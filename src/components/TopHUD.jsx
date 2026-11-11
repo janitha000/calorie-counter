@@ -26,6 +26,7 @@ export function TopHUD({
   sugar,
   sugarLimit,
   fastingStartTime,
+  fastBrokenMeal,
   isDark,
   onToggleTheme,
   canInstallPWA,
@@ -41,14 +42,15 @@ export function TopHUD({
   const currentDate = dateParam ? new Date(dateParam + 'T00:00:00') : new Date();
   const isToday = !dateParam || format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
-  // Fasting elapsed calculation
+  // Fasting elapsed calculation: only marked broken when sugar > 0
   let fastingText = 'Not active';
   if (fastingStartTime) {
     const start = new Date(fastingStartTime);
-    const diffMs = Math.max(0, Date.now() - start.getTime());
+    const end = fastBrokenMeal ? new Date(fastBrokenMeal.loggedAt) : new Date();
+    const diffMs = Math.max(0, end.getTime() - start.getTime());
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    fastingText = `${hours}h ${mins}m fast`;
+    fastingText = fastBrokenMeal ? `Fasted ${hours}h ${mins}m` : `${hours}h ${mins}m fast`;
   }
 
   // Macro percentages for the 3-segment bar
