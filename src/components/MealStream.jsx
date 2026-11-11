@@ -235,7 +235,7 @@ export function MealStream({
                         MEAL BREAKDOWN:
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-[#b45309] dark:text-[#f59e0b] font-semibold">
+                        <span className="text-[#047857] dark:text-[#10b981] font-semibold">
                           P: {totalP}g
                         </span>
                         <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
@@ -243,7 +243,7 @@ export function MealStream({
                           C: {totalC}g
                         </span>
                         <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
-                        <span className="text-[#4d7c0f] dark:text-[#84cc16] font-semibold">
+                        <span className="text-[#a16207] dark:text-[#eab308] font-semibold">
                           F: {totalF}g
                         </span>
                         <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>

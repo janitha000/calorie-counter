@@ -66,7 +66,7 @@ export function GoalModal({
 
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-[10px] font-bold text-[#f59e0b] mb-1">
+              <label className="block text-[10px] font-bold text-[#10b981] mb-1">
                 Protein (g)
               </label>
               <input
@@ -88,7 +88,7 @@ export function GoalModal({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-[#84cc16] mb-1">
+              <label className="block text-[10px] font-bold text-[#eab308] mb-1">
                 Fat (g)
               </label>
               <input

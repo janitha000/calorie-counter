@@ -278,7 +278,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                       />
                     </div>
                     <div>
-                      <span className="text-[#f59e0b] block text-[8px]">PRO</span>
+                      <span className="text-[#10b981] block text-[8px]">PRO</span>
                       <input
                         type="number"
                         value={it.protein}
@@ -296,7 +296,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                       />
                     </div>
                     <div>
-                      <span className="text-[#84cc16] block text-[8px]">FAT</span>
+                      <span className="text-[#eab308] block text-[8px]">FAT</span>
                       <input
                         type="number"
                         value={it.fat}
@@ -319,7 +319,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-1.5 font-mono text-center">
+          <div className="grid grid-cols-5 gap-1.5 font-mono text-center">
             <div>
               <label className="block text-[8px] font-bold text-[#78716c] uppercase">Calories</label>
               <input
@@ -330,7 +330,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
               />
             </div>
             <div>
-              <label className="block text-[8px] font-bold text-[#f59e0b] uppercase">Protein</label>
+              <label className="block text-[8px] font-bold text-[#10b981] uppercase">Protein</label>
               <input
                 type="number"
                 value={editData.protein}
@@ -344,6 +344,15 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                 type="number"
                 value={editData.carbs}
                 onChange={(e) => setEditData({ ...editData, carbs: e.target.value })}
+                className="w-full p-1.5 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
+              />
+            </div>
+            <div>
+              <label className="block text-[8px] font-bold text-[#eab308] uppercase">Fat</label>
+              <input
+                type="number"
+                value={editData.fat || 0}
+                onChange={(e) => setEditData({ ...editData, fat: e.target.value })}
                 className="w-full p-1.5 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
               />
             </div>
@@ -426,7 +435,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
 
             {/* Micro macro tags (Protein, Carbs, Fat, Sugar) */}
             <div className="flex items-center gap-1.5 text-[10px] font-mono tabular-nums">
-              <span className="text-[#b45309] dark:text-[#f59e0b] font-semibold">
+              <span className="text-[#047857] dark:text-[#10b981] font-semibold">
                 P:{Math.round(meal.protein || 0)}g
               </span>
               <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
@@ -434,7 +443,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                 C:{Math.round(meal.carbs || 0)}g
               </span>
               <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
-              <span className="text-[#4d7c0f] dark:text-[#84cc16] font-semibold">
+              <span className="text-[#a16207] dark:text-[#eab308] font-semibold">
                 F:{Math.round(meal.fat || 0)}g
               </span>
               <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
@@ -463,11 +472,11 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                   <div className="flex items-center gap-2 text-[10px] font-mono text-[#78716c] dark:text-[#8e8680]">
                     <span>Calories: <strong className="text-[#1c1917] dark:text-[#ede9e6]">{it.calories}</strong></span>
                     <span>•</span>
-                    <span className="text-[#f59e0b]">P:{it.protein || 0}g</span>
+                    <span className="text-[#10b981]">P:{it.protein || 0}g</span>
                     <span>•</span>
                     <span className="text-[#ea580c]">C:{it.carbs || 0}g</span>
                     <span>•</span>
-                    <span className="text-[#84cc16]">F:{it.fat || 0}g</span>
+                    <span className="text-[#eab308]">F:{it.fat || 0}g</span>
                     <span>•</span>
                     <span className="text-[#fb7185]">Sugar:{it.sugar || 0}g</span>
                   </div>

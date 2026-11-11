@@ -346,7 +346,7 @@ export function BottomSheet({
 
                   {/* Macros breakdown grid */}
                   <div className="grid grid-cols-4 gap-2 pt-2 border-t border-[#f0ebe3] dark:border-[#282422] text-center font-mono">
-                    <div className="p-1.5 rounded-lg bg-[#f59e0b]/10 text-[#f59e0b]">
+                    <div className="p-1.5 rounded-lg bg-[#10b981]/10 text-[#10b981]">
                       <span className="text-[9px] uppercase block font-sans font-bold">Protein</span>
                       <span className="text-xs font-bold">{Math.round(parsedResult.protein || 0)}g</span>
                     </div>
@@ -354,7 +354,7 @@ export function BottomSheet({
                       <span className="text-[9px] uppercase block font-sans font-bold">Carbs</span>
                       <span className="text-xs font-bold">{Math.round(parsedResult.carbs || 0)}g</span>
                     </div>
-                    <div className="p-1.5 rounded-lg bg-[#84cc16]/10 text-[#84cc16]">
+                    <div className="p-1.5 rounded-lg bg-[#eab308]/10 text-[#eab308]">
                       <span className="text-[9px] uppercase block font-sans font-bold">Fat</span>
                       <span className="text-xs font-bold">{Math.round(parsedResult.fat || 0)}g</span>
                     </div>
@@ -420,9 +420,9 @@ export function BottomSheet({
                       </span>
                       <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-mono">
                         {food.servingUnit ? `${food.servingUnit} • ` : ''}
-                        <span className="text-[#f59e0b] font-semibold">P:{food.protein}g</span> •{' '}
+                        <span className="text-[#10b981] font-semibold">P:{food.protein}g</span> •{' '}
                         <span className="text-[#ea580c] font-semibold">C:{food.carbs}g</span> •{' '}
-                        <span className="text-[#84cc16] font-semibold">F:{food.fat}g</span> •{' '}
+                        <span className="text-[#eab308] font-semibold">F:{food.fat}g</span> •{' '}
                         <span className="text-[#fb7185] font-semibold">Sugar:{food.sugar}g</span>
                       </span>
                     </div>
@@ -489,7 +489,7 @@ export function BottomSheet({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-[#f59e0b] mb-1">
+                  <label className="block text-[11px] font-bold text-[#10b981] mb-1">
                     Protein (g)
                   </label>
                   <input
@@ -517,7 +517,7 @@ export function BottomSheet({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-[#84cc16] mb-1">
+                  <label className="block text-[11px] font-bold text-[#eab308] mb-1">
                     Fat (g)
                   </label>
                   <input

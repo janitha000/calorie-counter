@@ -10,9 +10,9 @@
     --card-foreground: #1c1917;
     --card-border: #e4dfd7;
     --primary: #10b981;
-    --protein: #f59e0b;
+    --protein: #10b981;
     --carbs: #ea580c;
-    --fat: #84cc16;
+    --fat: #ca8a04;
     --sugar: #fb7185;
   }
 
@@ -23,9 +23,9 @@
     --card-foreground: #ede9e6;
     --card-border: #282422;
     --primary: #10b981;
-    --protein: #f59e0b;
+    --protein: #10b981;
     --carbs: #ea580c;
-    --fat: #84cc16;
+    --fat: #eab308;
     --sugar: #fb7185;
   }
 }

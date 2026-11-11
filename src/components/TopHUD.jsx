@@ -219,7 +219,7 @@ export function TopHUD({
         {/* 3-Segment Progress bar */}
         <div className="w-full h-2 rounded bg-[#e7e2da] dark:bg-[#151312] border border-[#d8d1c7] dark:border-[#282422] flex overflow-hidden">
           <div
-            className="h-full bg-[#f59e0b] transition-all duration-300"
+            className="h-full bg-[#10b981] transition-all duration-300"
             style={{ width: `${pRatio}%` }}
             title={`Protein: ${protein}g`}
           />
@@ -229,7 +229,7 @@ export function TopHUD({
             title={`Carbs: ${carbs}g`}
           />
           <div
-            className="h-full bg-[#84cc16] transition-all duration-300 border-l border-[#f7f5f0] dark:border-[#0e0d0c]"
+            className="h-full bg-[#ca8a04] dark:bg-[#eab308] transition-all duration-300 border-l border-[#f7f5f0] dark:border-[#0e0d0c]"
             style={{ width: `${fRatio}%` }}
             title={`Fat: ${fat}g`}
           />
@@ -238,23 +238,23 @@ export function TopHUD({
 
       {/* Macro Current vs Goal Badges (Protein, Carbs, Fat) */}
       <div className="grid grid-cols-3 gap-2 mb-2">
-        {/* Protein (Yolk Gold) */}
-        <div className="rounded border border-[#fde68a] bg-[#fef3c7] dark:border-[#78350f] dark:bg-[#451a03]/80 px-2.5 py-1.5 flex flex-col justify-between shadow-xs">
+        {/* Protein (Fresh Green) */}
+        <div className="rounded border border-[#a7f3d0] bg-[#ecfdf5] dark:border-[#065f46] dark:bg-[#064e3b]/70 px-2.5 py-1.5 flex flex-col justify-between shadow-xs">
           <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-[#b45309] dark:text-[#f59e0b]">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-[#047857] dark:text-[#10b981]">
               Protein
             </span>
-            <span className="text-[10px] font-mono text-[#b45309]/90 dark:text-[#f59e0b]/80 tabular-nums font-semibold">
+            <span className="text-[10px] font-mono text-[#047857]/90 dark:text-[#10b981]/90 tabular-nums font-semibold">
               {pPercent}%
             </span>
           </div>
           <div className="font-mono text-xs text-[#1c1917] dark:text-[#faf7f5] tabular-nums font-bold flex items-baseline justify-between">
-            <span>{Math.round(protein)}<span className="text-[10px] font-normal text-[#b45309] dark:text-[#f59e0b]/80">g</span></span>
+            <span>{Math.round(protein)}<span className="text-[10px] font-normal text-[#047857] dark:text-[#10b981]/90">g</span></span>
             <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-normal font-sans">/ {proteinGoal}g</span>
           </div>
-          <div className="w-full bg-[#fde68a] dark:bg-[#0e0d0c] h-1 rounded-full overflow-hidden mt-1">
+          <div className="w-full bg-[#a7f3d0] dark:bg-[#0e0d0c] h-1 rounded-full overflow-hidden mt-1">
             <div
-              className="bg-[#d97706] dark:bg-[#f59e0b] h-full transition-all duration-300"
+              className="bg-[#059669] dark:bg-[#10b981] h-full transition-all duration-300"
               style={{ width: `${pPercent}%` }}
             />
           </div>
@@ -282,23 +282,23 @@ export function TopHUD({
           </div>
         </div>
 
-        {/* Fats (Avocado Olive) */}
-        <div className="rounded border border-[#d9f99d] bg-[#ecfccb] dark:border-[#365314] dark:bg-[#1a2e05]/80 px-2.5 py-1.5 flex flex-col justify-between shadow-xs">
+        {/* Fats (Dark Yellow / Warm Amber) */}
+        <div className="rounded border border-[#fef08a] bg-[#fefce8] dark:border-[#854d0e] dark:bg-[#422006]/80 px-2.5 py-1.5 flex flex-col justify-between shadow-xs">
           <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-[#4d7c0f] dark:text-[#84cc16]">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-[#a16207] dark:text-[#eab308]">
               Fats
             </span>
-            <span className="text-[10px] font-mono text-[#4d7c0f]/90 dark:text-[#84cc16]/80 tabular-nums font-semibold">
+            <span className="text-[10px] font-mono text-[#a16207]/90 dark:text-[#eab308]/90 tabular-nums font-semibold">
               {fPercent}%
             </span>
           </div>
           <div className="font-mono text-xs text-[#1c1917] dark:text-[#faf7f5] tabular-nums font-bold flex items-baseline justify-between">
-            <span>{Math.round(fat)}<span className="text-[10px] font-normal text-[#4d7c0f] dark:text-[#84cc16]/80">g</span></span>
+            <span>{Math.round(fat)}<span className="text-[10px] font-normal text-[#a16207] dark:text-[#eab308]/90">g</span></span>
             <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-normal font-sans">/ {fatGoal}g</span>
           </div>
-          <div className="w-full bg-[#d9f99d] dark:bg-[#0e0d0c] h-1 rounded-full overflow-hidden mt-1">
+          <div className="w-full bg-[#fef08a] dark:bg-[#0e0d0c] h-1 rounded-full overflow-hidden mt-1">
             <div
-              className="bg-[#65a30d] dark:bg-[#84cc16] h-full transition-all duration-300"
+              className="bg-[#ca8a04] dark:bg-[#eab308] h-full transition-all duration-300"
               style={{ width: `${fPercent}%` }}
             />
           </div>
