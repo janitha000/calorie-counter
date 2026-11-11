@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 import { TopHUD } from './TopHUD';
 import { MealStream } from './MealStream';
 import { BottomBar } from './BottomBar';
 import { BottomSheet } from './BottomSheet';
 import { GoalModal } from './GoalModal';
+import { SwipeableContainer } from './SwipeableContainer';
 
 export function TactileDashboard({
   initialMeals = [],
@@ -61,6 +63,7 @@ export function TactileDashboard({
       setIsDark(dark);
       document.documentElement.classList.toggle('dark', dark);
     } else {
+      setIsDark(true);
       document.documentElement.classList.add('dark');
     }
 
@@ -151,7 +154,10 @@ export function TactileDashboard({
   };
 
   const handleLogMealSuccess = (newMeal) => {
-    setMeals(prev => [newMeal, ...prev]);
+    setMeals(prev => {
+      if (prev.some(m => m.id === newMeal.id)) return prev;
+      return [newMeal, ...prev];
+    });
     router.refresh();
   };
 
@@ -187,7 +193,11 @@ export function TactileDashboard({
   );
 
   return (
-    <div className="min-h-screen bg-[#f7f5f0] dark:bg-[#0e0d0c] text-[#1c1917] dark:text-[#ede9e6] flex flex-col transition-colors pb-20">
+    <SwipeableContainer
+      currentDate={dateParam || format(new Date(), 'yyyy-MM-dd')}
+      disabled={isBottomSheetOpen || isGoalModalOpen}
+      className="min-h-screen bg-[#f7f5f0] dark:bg-[#0e0d0c] text-[#1c1917] dark:text-[#ede9e6] flex flex-col transition-colors pb-20"
+    >
       {/* 1. Sticky Top HUD */}
       <TopHUD
         dateParam={dateParam}
@@ -250,6 +260,6 @@ export function TactileDashboard({
         goals={goals}
         onSaveGoals={handleSaveGoals}
       />
-    </div>
+    </SwipeableContainer>
   );
 }

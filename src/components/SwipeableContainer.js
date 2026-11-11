@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { format, addDays } from 'date-fns';
 
-export function SwipeableContainer({ children, currentDate, className }) {
+export function SwipeableContainer({ children, currentDate, className, disabled = false }) {
   const router = useRouter();
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -13,6 +13,7 @@ export function SwipeableContainer({ children, currentDate, className }) {
   const minSwipeDistance = 50; 
 
   const onTouchStart = (e) => {
+    if (disabled) return;
     setTouchEnd(null);
     setTouchStart({
       x: e.targetTouches[0].clientX,
@@ -21,6 +22,7 @@ export function SwipeableContainer({ children, currentDate, className }) {
   };
 
   const onTouchMove = (e) => {
+    if (disabled) return;
     setTouchEnd({
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY,
@@ -28,7 +30,7 @@ export function SwipeableContainer({ children, currentDate, className }) {
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (disabled || !touchStart || !touchEnd) return;
     
     const distanceX = touchStart.x - touchEnd.x;
     const distanceY = touchStart.y - touchEnd.y;

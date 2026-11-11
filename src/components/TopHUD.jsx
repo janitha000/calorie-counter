@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Target, Flame, ChevronRight, Sun, Moon, Download } from 'lucide-react';
-import { format } from 'date-fns';
+import { Target, Flame, ChevronRight, ChevronLeft, Sun, Moon, Download } from 'lucide-react';
+import { format, addDays, subDays } from 'date-fns';
 
 export function TopHUD({
   dateParam,
@@ -57,15 +57,67 @@ export function TopHUD({
     fastingLabel = 'Fasting intact • 0g sugar';
   }
 
+  // Active date calculation
+  let activeDate = new Date();
+  if (dateParam) {
+    const [y, m, d] = dateParam.split('-').map(Number);
+    activeDate = new Date(y, m - 1, d);
+  }
+  activeDate.setHours(0, 0, 0, 0);
+
+  const realToday = new Date();
+  realToday.setHours(0, 0, 0, 0);
+
+  const isToday = activeDate.getTime() === realToday.getTime();
+  const prevDateStr = format(subDays(activeDate, 1), 'yyyy-MM-dd');
+  const nextDateStr = format(addDays(activeDate, 1), 'yyyy-MM-dd');
+
+  let dateLabel = 'Today';
+  if (!isToday) {
+    const yesterday = subDays(realToday, 1);
+    if (activeDate.getTime() === yesterday.getTime()) {
+      dateLabel = 'Yesterday';
+    } else {
+      dateLabel = format(activeDate, 'MMM d');
+    }
+  }
+
   return (
     <header className="sticky top-0 z-30 bg-[#f7f5f0]/95 dark:bg-[#0e0d0c]/95 backdrop-blur-md border-b border-[#e4dfd7] dark:border-[#282422] px-4 pt-3 pb-3 transition-colors">
-      {/* Top micro status bar */}
+      {/* Top micro status bar with Date Navigator & Fasting Status */}
       <div className="flex items-center justify-between text-xs mb-2.5">
-        <div className="flex items-center gap-1.5 text-[#78716c] dark:text-[#8e8680]">
-          <span className={`inline-block w-2 h-2 rounded-full ${fastBrokenMeal ? 'bg-[#f59e0b]' : 'bg-[#10b981] animate-pulse'}`} />
-          <span className="font-semibold text-[#1c1917] dark:text-[#ede9e6] tracking-tight">Today</span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Day Navigation Controls */}
+          <div className="flex items-center bg-white dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] rounded-lg p-0.5 shadow-xs">
+            <button
+              onClick={() => onSelectDate?.(prevDateStr)}
+              className="p-1 rounded text-[#78716c] dark:text-[#8e8680] hover:text-[#1c1917] dark:hover:text-[#ede9e6] active:bg-black/5 dark:active:bg-white/5 transition-colors"
+              aria-label="Previous day"
+              title="Previous day"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              onClick={() => onSelectDate?.('')}
+              className="px-2 py-0.5 font-semibold text-[11px] text-[#1c1917] dark:text-[#ede9e6] tracking-tight hover:text-[#10b981] transition-colors"
+              title={isToday ? "Current day" : "Return to Today"}
+            >
+              {dateLabel}
+            </button>
+
+            <button
+              onClick={() => onSelectDate?.(nextDateStr)}
+              className="p-1 rounded text-[#78716c] dark:text-[#8e8680] hover:text-[#1c1917] dark:hover:text-[#ede9e6] active:bg-black/5 dark:active:bg-white/5 transition-colors"
+              aria-label="Next day"
+              title="Next day"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
-          <span className="font-mono text-[11px] tabular-nums text-[#1c1917] dark:text-[#ede9e6]">{fastingLabel}</span>
+          <span className="font-mono text-[11px] tabular-nums text-[#78716c] dark:text-[#8e8680]">{fastingLabel}</span>
         </div>
 
         <div className="flex items-center gap-1.5">

@@ -134,10 +134,17 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
   const itemsList = Array.isArray(meal.items) ? meal.items : [];
   const itemSugar = meal.sugar !== undefined ? Math.round(meal.sugar * 10) / 10 : 0;
 
+  // Only show decomposed sub-items if there are multiple items or the item name differs from meal name
+  const hasMultipleDistinctComponents = itemsList.length > 1 || (
+    itemsList.length === 1 && 
+    itemsList[0]?.name && 
+    itemsList[0].name.trim().toLowerCase() !== meal.name.trim().toLowerCase()
+  );
+
   // Portion label
   const portionLabel = meal.servings && meal.servings !== 1 
     ? `${meal.servings} servings` 
-    : (itemsList.length > 0 ? `${itemsList.length} components` : '1 standard serving');
+    : (itemsList.length > 1 ? `${itemsList.length} components` : '1 standard serving');
 
   // ================= EDIT MODE =================
   if (isEditing) {
@@ -445,8 +452,8 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
             </div>
           )}
 
-          {/* Decomposed Components if available */}
-          {itemsList.length > 0 && (
+          {/* Decomposed Components if available (only for multi-component meals) */}
+          {hasMultipleDistinctComponents && (
             <div className="mt-2.5 pt-2 border-t border-[#f0ebe3] dark:border-[#282422]/60 space-y-1.5">
               {itemsList.map((it, idx) => (
                 <div key={idx} className="text-xs">

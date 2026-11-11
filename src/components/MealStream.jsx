@@ -28,10 +28,10 @@ export function MealStream({
   onUpdateMeal,
 }) {
   const [openSections, setOpenSections] = useState({
-    breakfast: true,
-    lunch: true,
-    dinner: true,
-    snack: true,
+    breakfast: false,
+    lunch: false,
+    dinner: false,
+    snack: false,
   });
 
   const toggleSection = (type) => {
