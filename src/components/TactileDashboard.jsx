@@ -155,6 +155,11 @@ export function TactileDashboard({
     router.refresh();
   };
 
+  const handleUpdateMeal = (updatedMeal) => {
+    setMeals(prev => prev.map(m => m.id === updatedMeal.id ? updatedMeal : m));
+    router.refresh();
+  };
+
   const handleDeleteMeal = async (mealId) => {
     // Optimistic remove
     setMeals(prev => prev.filter(m => m.id !== mealId));
@@ -216,6 +221,7 @@ export function TactileDashboard({
           onRemoveWater={handleRemoveWater}
           onOpenLogModal={handleOpenLogModal}
           onDeleteMeal={handleDeleteMeal}
+          onUpdateMeal={handleUpdateMeal}
         />
       </main>
 

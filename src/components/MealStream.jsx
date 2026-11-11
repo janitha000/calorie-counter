@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
+import { MealCard } from './MealCard';
+
 const MEAL_CONFIG = {
   breakfast: { title: 'Breakfast', emoji: '🍳', defaultOpen: true },
   lunch:     { title: 'Lunch',     emoji: '🥗', defaultOpen: true },
@@ -28,7 +30,7 @@ export function MealStream({
   onRemoveWater,
   onOpenLogModal,
   onDeleteMeal,
-  onUpdatePortion,
+  onUpdateMeal,
 }) {
   const [openSections, setOpenSections] = useState({
     breakfast: true,
@@ -197,51 +199,14 @@ export function MealStream({
                     No foods logged for {cfg.title.toLowerCase()} yet.
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {typeMeals.map((meal) => (
-                      <div
+                      <MealCard
                         key={meal.id}
-                        className="p-2.5 rounded-xl bg-[#f7f5f0]/80 dark:bg-[#0e0d0c]/60 border border-[#e4dfd7] dark:border-[#282422] flex items-center justify-between gap-3 text-xs"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-[#1c1917] dark:text-[#ede9e6] truncate">
-                              {meal.name}
-                            </span>
-                            {meal.servings && meal.servings !== 1 && (
-                              <span className="text-[10px] font-mono text-[#78716c] dark:text-[#8e8680]">
-                                {meal.servings}x
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Nutrition row: Macros + Sugar */}
-                          <div className="flex items-center gap-2 mt-1 text-[10px] font-mono text-[#78716c] dark:text-[#8e8680]">
-                            <span className="text-[#f59e0b]">{Math.round(meal.protein || 0)}P</span>
-                            <span>•</span>
-                            <span className="text-[#ea580c]">{Math.round(meal.carbs || 0)}C</span>
-                            <span>•</span>
-                            <span className="text-[#84cc16]">{Math.round(meal.fat || 0)}F</span>
-                            <span>•</span>
-                            <span className="text-[#fb7185] font-semibold">{Math.round(meal.sugar || 0)}g sugar</span>
-                          </div>
-                        </div>
-
-                        {/* Calories & Delete Action */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="font-mono font-bold text-[#1c1917] dark:text-[#ede9e6] text-sm">
-                            {meal.calories} kcal
-                          </span>
-                          <button
-                            onClick={() => onDeleteMeal(meal.id)}
-                            className="p-1.5 text-[#78716c] dark:text-[#8e8680] hover:text-red-500 dark:hover:text-red-400 active:scale-95 transition-colors rounded-lg min-h-[36px] min-w-[36px] flex items-center justify-center"
-                            aria-label={`Delete ${meal.name}`}
-                            title="Delete food entry"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
+                        meal={meal}
+                        onUpdateMeal={onUpdateMeal}
+                        onDeleteMeal={onDeleteMeal}
+                      />
                     ))}
                   </div>
                 )}
