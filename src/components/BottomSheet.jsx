@@ -402,7 +402,7 @@ export function BottomSheet({
                   type="text"
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  placeholder="Filter frequent staples (oats, eggs, chicken, rice)..."
+                  placeholder="Search staples (guava, tea, rice, chocolate, banana)..."
                   className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] text-xs text-[#1c1917] dark:text-[#ede9e6] placeholder-[#a8a29e] focus:outline-none focus:border-[#10b981]"
                 />
               </div>
@@ -419,7 +419,11 @@ export function BottomSheet({
                         {food.name}
                       </span>
                       <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-mono">
-                        {food.protein}g P • {food.carbs}g C • {food.fat}g F • {food.sugar}g Sugar
+                        {food.servingUnit ? `${food.servingUnit} • ` : ''}
+                        <span className="text-[#f59e0b] font-semibold">P:{food.protein}g</span> •{' '}
+                        <span className="text-[#ea580c] font-semibold">C:{food.carbs}g</span> •{' '}
+                        <span className="text-[#84cc16] font-semibold">F:{food.fat}g</span> •{' '}
+                        <span className="text-[#fb7185] font-semibold">Sugar:{food.sugar}g</span>
                       </span>
                     </div>
 
