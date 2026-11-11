@@ -1,23 +1,31 @@
 export default function manifest() {
   return {
-    name: 'AI Calorie Counter',
+    name: 'MacroForge • Calorie & Macro Counter',
     short_name: 'CalorieAI',
     description: 'AI-powered calorie counter and macro tracker.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#000000',
+    background_color: '#0e0d0c',
+    theme_color: '#0e0d0c',
     icons: [
       {
-        src: '/icon-192x192.png',
-        sizes: '192x192',
-        type: 'image/png',
+        src: '/favicon.svg',
+        sizes: '48x48 72x72 96x96',
+        type: 'image/svg+xml',
+        purpose: 'any',
       },
       {
-        src: '/icon-512x512.png',
+        src: '/icon-192.svg',
+        sizes: '192x192',
+        type: 'image/svg+xml',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-512.svg',
         sizes: '512x512',
-        type: 'image/png',
+        type: 'image/svg+xml',
+        purpose: 'any maskable',
       },
     ],
-  }
+  };
 }

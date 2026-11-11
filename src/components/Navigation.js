@@ -1,21 +1,26 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, PlusCircle, BarChart2, User } from "lucide-react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, Calendar, BarChart2 } from 'lucide-react';
 
 export function Navigation() {
   const pathname = usePathname();
 
+  // On the home dashboard, the tactile BottomBar is used instead
+  if (pathname === '/') {
+    return null;
+  }
+
   const navItems = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Summary", href: "/summary", icon: PlusCircle },
-    { name: "Stats", href: "/stats", icon: BarChart2 },
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Summary', href: '/summary', icon: Calendar },
+    { name: 'Stats', href: '/stats', icon: BarChart2 },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.05)] md:relative md:border-t md:border-gray-100 md:shadow-none">
-      <div className="max-w-lg mx-auto px-6 h-16 flex items-center justify-between">
+    <nav className="fixed inset-x-0 bottom-0 z-40 max-w-md mx-auto h-14 bg-[#f7f5f0]/95 dark:bg-[#151312]/95 backdrop-blur-md border-t border-[#e4dfd7] dark:border-[#282422] px-6 flex items-center justify-between shadow-lg">
+      <div className="w-full flex items-center justify-around">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -23,14 +28,14 @@ export function Navigation() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 ease-in-out ${
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 min-h-[44px] ${
                 isActive
-                  ? "bg-green-50 text-green-600 scale-105"
-                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                  ? 'text-[#10b981] font-bold bg-[#10b981]/10'
+                  : 'text-[#78716c] dark:text-[#8e8680] hover:text-[#1c1917] dark:hover:text-[#ede9e6]'
               }`}
             >
-              <Icon className={`w-6 h-6 ${isActive ? "stroke-[2.5px]" : "stroke-2"}`} />
-              <span className={`text-[10px] mt-1 font-semibold ${isActive ? "opacity-100" : "opacity-70"}`}>{item.name}</span>
+              <Icon className="w-4 h-4 stroke-[2.2]" />
+              <span className="text-[10px] mt-0.5">{item.name}</span>
             </Link>
           );
         })}
