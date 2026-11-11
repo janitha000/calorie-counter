@@ -1,32 +1,42 @@
-import { Inter, Outfit } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Navigation } from "@/components/Navigation";
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const outfit = Outfit({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-mono",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata = {
-  title: "AI Calorie Counter",
-  description: "Track your calories with the power of AI",
-  themeColor: "#22c55e",
-  manifest: "/manifest.json",
+  title: "MacroForge • Calorie & Macro Counter",
+  description: "Mobile-first, high-density calorie, macro & sugar tracker with AI-powered meal logging.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
+  },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "CalorieAI",
   },
 };
 
 export const viewport = {
-  themeColor: "#22c55e",
+  themeColor: "#0e0d0c",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -37,13 +47,13 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${outfit.variable} h-full antialiased`}
+      className={`${plusJakarta.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
-      <body className="h-full flex flex-col font-sans bg-gray-50 text-gray-900 pb-20 md:pb-0">
+      <body className="h-full flex flex-col font-sans bg-[#f7f5f0] dark:bg-[#0e0d0c] text-[#1c1917] dark:text-[#ede9e6] transition-colors">
         <Providers>
-          <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full bg-white md:border-x md:border-gray-100 shadow-sm relative">
-             {children}
-          </main>
+          <div className="flex-1 max-w-md mx-auto w-full relative">
+            {children}
+          </div>
           <Navigation />
         </Providers>
       </body>
