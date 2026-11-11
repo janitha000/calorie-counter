@@ -33,13 +33,13 @@ export function TactileDashboard({
   // Water tracking state (glasses): persisted in localStorage
   const [waterGlasses, setWaterGlasses] = useState(6);
 
-  // Targets / Goals state
+  // Targets / Goals state (calibrated to 2,200 kcal, 155g P, 235g C, 65g F, 35g Sugar)
   const [goals, setGoals] = useState({
-    calories: defaultTdee || 1600,
-    protein: 135,
-    carbs: 135,
-    fat: 58,
-    sugar: 25,
+    calories: defaultTdee || 2200,
+    protein: 155,
+    carbs: 235,
+    fat: 65,
+    sugar: 35,
     water: 8,
   });
 

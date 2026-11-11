@@ -10,11 +10,11 @@ export function GoalModal({
   onSaveGoals,
 }) {
   const [form, setForm] = useState({
-    calories: goals?.calories || 1600,
-    protein: goals?.protein || 135,
-    carbs: goals?.carbs || 135,
-    fat: goals?.fat || 58,
-    sugar: goals?.sugar || 25,
+    calories: goals?.calories || 2200,
+    protein: goals?.protein || 155,
+    carbs: goals?.carbs || 235,
+    fat: goals?.fat || 65,
+    sugar: goals?.sugar || 35,
     water: goals?.water || 8,
   });
 

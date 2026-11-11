@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { 
   Clock, 
   Trash2, 
-  Edit2, 
+  Edit3, 
   Check, 
   X, 
   Sparkles, 
@@ -18,12 +18,12 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Parse initial time for HTML <input type="time">
+  // Time handling
   const mealDate = new Date(meal.loggedAt || Date.now());
   const initialTimeStr = format(mealDate, 'HH:mm');
+  const [timeInput, setTimeInput] = useState(initialTimeStr);
 
   // Edit form state
-  const [timeInput, setTimeInput] = useState(initialTimeStr);
   const [editData, setEditData] = useState({
     name: meal.name,
     servings: meal.servings || 1,
@@ -37,7 +37,6 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
     items: Array.isArray(meal.items) ? meal.items : [],
   });
 
-  // Calculate new loggedAt ISO string when time input changes
   const getUpdatedLoggedAt = () => {
     try {
       const [hours, minutes] = timeInput.split(':').map(Number);
@@ -49,12 +48,10 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
     }
   };
 
-  // Handle changes to individual decomposed items
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...editData.items];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
 
-    // Auto-recalculate totals across items
     const totalCals = updatedItems.reduce((sum, it) => sum + (Number(it.calories) || 0), 0);
     const totalP = updatedItems.reduce((sum, it) => sum + (Number(it.protein) || 0), 0);
     const totalC = updatedItems.reduce((sum, it) => sum + (Number(it.carbs) || 0), 0);
@@ -77,7 +74,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
       ...editData,
       items: [
         ...editData.items,
-        { name: 'New Food', calories: 100, protein: 5, carbs: 10, fat: 2, sugar: 0 },
+        { name: 'New Component', calories: 100, protein: 5, carbs: 10, fat: 2, sugar: 0 },
       ],
     });
   };
@@ -101,7 +98,6 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
     });
   };
 
-  // Submit PUT to /api/meals/[id]
   const handleSave = async (e) => {
     e?.preventDefault();
     setIsSaving(true);
@@ -129,31 +125,30 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
       onUpdateMeal?.(data.meal || { ...meal, ...payload });
     } catch (err) {
       console.error(err);
-      alert('Could not update meal. Please try again.');
+      alert('Could not update meal.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Daily target percentages
-  const targetCalories = 1600;
-  const calPercent = Math.min(100, Math.round(((meal.calories || 0) / targetCalories) * 100));
-  const carbPercent = Math.min(100, Math.round(((meal.carbs || 0) / 135) * 100));
-  const proteinPercent = Math.min(100, Math.round(((meal.protein || 0) / 135) * 100));
-  const fatPercent = Math.min(100, Math.round(((meal.fat || 0) / 58) * 100));
-
   const itemsList = Array.isArray(meal.items) ? meal.items : [];
+  const itemSugar = meal.sugar !== undefined ? Math.round(meal.sugar * 10) / 10 : 0;
+
+  // Portion label
+  const portionLabel = meal.servings && meal.servings !== 1 
+    ? `${meal.servings} servings` 
+    : (itemsList.length > 0 ? `${itemsList.length} components` : '1 standard serving');
 
   // ================= EDIT MODE =================
   if (isEditing) {
     return (
       <form
         onSubmit={handleSave}
-        className="p-3.5 bg-white dark:bg-[#0e0d0c] border-2 border-[#10b981]/50 rounded-xl space-y-3 text-xs"
+        className="p-3 bg-white dark:bg-[#12100f] border-2 border-[#10b981]/50 rounded-lg space-y-3 text-xs my-2"
       >
-        <div className="flex items-center justify-between pb-2 border-b border-[#e4dfd7] dark:border-[#282422]">
-          <span className="font-bold text-[#1c1917] dark:text-[#ede9e6]">
-            Edit Food & Time
+        <div className="flex items-center justify-between pb-1.5 border-b border-[#e4dfd7] dark:border-[#282422]">
+          <span className="font-bold text-[#1c1917] dark:text-[#ede9e6] uppercase tracking-wider text-[10px]">
+            Edit Food Entry
           </span>
           <button
             type="button"
@@ -164,33 +159,33 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
           </button>
         </div>
 
-        {/* Meal Name & Time input */}
+        {/* Meal Name & Time */}
         <div className="grid grid-cols-3 gap-2">
           <div className="col-span-2">
             <label className="block text-[10px] font-bold text-[#78716c] dark:text-[#8e8680] mb-0.5">
-              Meal Name
+              Food Name
             </label>
             <input
               type="text"
               value={editData.name}
               onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-              className="w-full p-2 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] font-semibold focus:outline-none focus:border-[#10b981]"
+              className="w-full p-2 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] font-semibold focus:outline-none focus:border-[#10b981]"
             />
           </div>
           <div>
             <label className="block text-[10px] font-bold text-[#78716c] dark:text-[#8e8680] mb-0.5">
-              Time (Logged At)
+              Log Time
             </label>
             <input
               type="time"
               value={timeInput}
               onChange={(e) => setTimeInput(e.target.value)}
-              className="w-full p-2 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] font-mono font-bold focus:outline-none focus:border-[#10b981]"
+              className="w-full p-2 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] font-mono font-bold focus:outline-none focus:border-[#10b981]"
             />
           </div>
         </div>
 
-        {/* Meal Category / Type Switcher */}
+        {/* Category Switcher */}
         <div>
           <label className="block text-[10px] font-bold text-[#78716c] dark:text-[#8e8680] mb-1">
             Category
@@ -201,10 +196,10 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                 key={cat}
                 type="button"
                 onClick={() => setEditData({ ...editData, type: cat })}
-                className={`flex-1 py-1 rounded-md text-[10px] font-bold capitalize transition-colors ${
+                className={`flex-1 py-1 rounded text-[10px] font-bold capitalize transition-colors ${
                   editData.type === cat
                     ? 'bg-[#10b981] text-[#0e0d0c]'
-                    : 'bg-[#f7f5f0] dark:bg-[#151312] text-[#78716c] dark:text-[#8e8680] border border-[#e4dfd7] dark:border-[#282422]'
+                    : 'bg-[#f7f5f0] dark:bg-[#1c1918] text-[#78716c] dark:text-[#8e8680] border border-[#e4dfd7] dark:border-[#282422]'
                 }`}
               >
                 {cat}
@@ -213,33 +208,33 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
           </div>
         </div>
 
-        {/* Optional AI Insight Field */}
+        {/* AI Insight Note */}
         <div>
           <label className="block text-[10px] font-bold text-[#78716c] dark:text-[#8e8680] mb-0.5">
-            AI Insight Note
+            AI Description / Insight
           </label>
           <input
             type="text"
             value={editData.insight}
             onChange={(e) => setEditData({ ...editData, insight: e.target.value })}
             placeholder="e.g. Good protein & fiber, but high carbs"
-            className="w-full p-2 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-[11px] focus:outline-none focus:border-[#10b981]"
+            className="w-full p-1.5 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-[11px] focus:outline-none focus:border-[#10b981]"
           />
         </div>
 
-        {/* Decomposed Items Table or Direct Macro inputs */}
+        {/* Decomposed Components or Direct Macro Edit */}
         {editData.items && editData.items.length > 0 ? (
-          <div className="space-y-1.5 border border-[#e4dfd7] dark:border-[#282422] rounded-xl p-2 bg-[#f7f5f0]/50 dark:bg-[#151312]/50">
+          <div className="space-y-1.5 border border-[#e4dfd7] dark:border-[#282422] rounded-lg p-2 bg-[#f7f5f0]/50 dark:bg-[#151312]/50">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#78716c] dark:text-[#8e8680]">
-                Decomposed Items ({editData.items.length})
+                Decomposed Components ({editData.items.length})
               </span>
               <button
                 type="button"
                 onClick={handleAddItem}
                 className="text-[10px] font-bold text-[#10b981] flex items-center gap-0.5 hover:underline"
               >
-                <Plus className="w-3 h-3" /> Add item
+                <Plus className="w-3 h-3" /> Add component
               </button>
             </div>
 
@@ -247,14 +242,14 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
               {editData.items.map((it, idx) => (
                 <div
                   key={idx}
-                  className="p-1.5 rounded-lg bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] space-y-1"
+                  className="p-1.5 rounded bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] space-y-1"
                 >
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
                       value={it.name}
                       onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
-                      placeholder="Item name"
+                      placeholder="Component name"
                       className="flex-1 p-1 rounded bg-transparent font-semibold text-[11px] text-[#1c1917] dark:text-[#ede9e6] outline-none"
                     />
                     <button
@@ -324,7 +319,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                 type="number"
                 value={editData.calories}
                 onChange={(e) => setEditData({ ...editData, calories: e.target.value })}
-                className="w-full p-1.5 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center font-bold"
+                className="w-full p-1.5 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center font-bold"
               />
             </div>
             <div>
@@ -333,7 +328,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                 type="number"
                 value={editData.protein}
                 onChange={(e) => setEditData({ ...editData, protein: e.target.value })}
-                className="w-full p-1.5 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
+                className="w-full p-1.5 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
               />
             </div>
             <div>
@@ -342,7 +337,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                 type="number"
                 value={editData.carbs}
                 onChange={(e) => setEditData({ ...editData, carbs: e.target.value })}
-                className="w-full p-1.5 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
+                className="w-full p-1.5 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
               />
             </div>
             <div>
@@ -351,7 +346,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
                 type="number"
                 value={editData.sugar}
                 onChange={(e) => setEditData({ ...editData, sugar: e.target.value })}
-                className="w-full p-1.5 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
+                className="w-full p-1.5 rounded bg-[#f7f5f0] dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] text-center"
               />
             </div>
           </div>
@@ -361,7 +356,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
           <button
             type="submit"
             disabled={isSaving}
-            className="flex-1 py-2 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#0e0d0c] font-bold flex items-center justify-center gap-1.5 active:scale-98 transition-all min-h-[40px]"
+            className="flex-1 py-2 rounded-lg bg-[#10b981] hover:bg-[#059669] text-[#0e0d0c] font-bold flex items-center justify-center gap-1.5 active:scale-98 transition-all min-h-[38px]"
           >
             <Check className="w-4 h-4 stroke-[2.5]" />
             {isSaving ? 'Saving...' : 'Save Changes'}
@@ -369,7 +364,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
           <button
             type="button"
             onClick={() => setIsEditing(false)}
-            className="px-4 py-2 rounded-xl bg-[#f7f5f0] dark:bg-[#151312] text-[#78716c] dark:text-[#8e8680] font-bold hover:text-[#1c1917] dark:hover:text-[#ede9e6] border border-[#e4dfd7] dark:border-[#282422]"
+            className="px-4 py-2 rounded-lg bg-[#f7f5f0] dark:bg-[#1c1918] text-[#78716c] dark:text-[#8e8680] font-bold hover:text-[#1c1917] dark:hover:text-[#ede9e6] border border-[#e4dfd7] dark:border-[#282422]"
           >
             Cancel
           </button>
@@ -381,24 +376,21 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
   // ================= DELETE CONFIRMATION =================
   if (showDeleteConfirm) {
     return (
-      <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl space-y-2 text-xs">
+      <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg space-y-2 text-xs my-2">
         <div className="flex items-center gap-2 text-red-500 font-bold">
           <AlertCircle className="w-4 h-4" />
-          <span>Delete "{meal.name}"?</span>
+          <span>Remove "{meal.name}"?</span>
         </div>
-        <p className="text-[11px] text-[#78716c] dark:text-[#8e8680]">
-          This meal log will be permanently removed.
-        </p>
         <div className="flex gap-2 pt-1">
           <button
             onClick={() => onDeleteMeal(meal.id)}
-            className="flex-1 py-1.5 rounded-lg bg-red-500 text-white font-bold text-center active:scale-95"
+            className="flex-1 py-1.5 rounded bg-red-500 text-white font-bold text-center active:scale-95"
           >
-            Yes, Delete
+            Confirm Delete
           </button>
           <button
             onClick={() => setShowDeleteConfirm(false)}
-            className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] font-semibold"
+            className="px-3 py-1.5 rounded bg-white dark:bg-[#1c1918] border border-[#e4dfd7] dark:border-[#282422] text-[#1c1917] dark:text-[#ede9e6] font-semibold"
           >
             Cancel
           </button>
@@ -407,139 +399,110 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
     );
   }
 
-  // ================= READ-ONLY DISPLAY VIEW =================
+  // ================= EXACT TACTILE ROW VIEW =================
   return (
-    <article className="p-3.5 rounded-xl bg-white dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] space-y-3 shadow-xs transition-colors">
-      {/* 1. Header: Emoji, Title, Servings, Sugar Dot */}
-      <div>
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-base shrink-0">
-              {meal.type === 'breakfast' ? '🍳' : meal.type === 'lunch' ? '🥗' : meal.type === 'dinner' ? '🍲' : '🥨'}
-            </span>
-            <h3 className="font-bold text-xs text-[#1c1917] dark:text-[#ede9e6] truncate leading-tight">
+    <div className="relative border-b border-[#e4dfd7]/80 dark:border-[#282422]/70 last:border-b-0 py-3 px-3.5 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        {/* Left: Food name & macro breakdown */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <h4 className="font-semibold text-sm text-[#1c1917] dark:text-[#ede9e6] truncate leading-tight">
               {meal.name}
-            </h3>
+            </h4>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                (meal.sugar || 0) > 15 ? 'bg-red-400' : (meal.sugar || 0) > 0 ? 'bg-[#f59e0b]' : 'bg-[#10b981]'
-              }`}
-              title={`Sugar: ${meal.sugar || 0}g`}
-            />
-            <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-mono bg-[#f7f5f0] dark:bg-[#0e0d0c] px-1.5 py-0.5 rounded border border-[#e4dfd7] dark:border-[#282422]">
-              {meal.servings || 1} srv
+          {/* Portion weight / serving badge */}
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <span className="text-[11px] font-mono text-[#78716c] dark:text-[#8e8680] tabular-nums bg-[#f7f5f0] dark:bg-[#0e0d0c] px-1.5 py-0.5 rounded border border-[#e4dfd7] dark:border-[#282422]">
+              {portionLabel}
             </span>
-          </div>
-        </div>
 
-        {/* 2. AI Description / Insight Pill if available */}
-        {meal.insight && (
-          <div className="mt-2 p-2 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/50 dark:border-indigo-800/40 flex items-start gap-1.5 text-[11px] text-indigo-700 dark:text-indigo-300 italic">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-            <span>{meal.insight}</span>
-          </div>
-        )}
-      </div>
-
-      {/* 3. Decomposed Items Breakdown (Per Category / Component) */}
-      {itemsList.length > 0 && (
-        <div className="space-y-2 pt-1 border-t border-[#f0ebe3] dark:border-[#282422]">
-          {itemsList.map((item, idx) => (
-            <div key={idx} className="space-y-0.5 text-xs">
-              <span className="font-semibold text-[#1c1917] dark:text-[#ede9e6] block">
-                {item.name}
+            {/* Micro macro tags (Protein, Carbs, Fat, Sugar) */}
+            <div className="flex items-center gap-1.5 text-[10px] font-mono tabular-nums">
+              <span className="text-[#b45309] dark:text-[#f59e0b] font-semibold">
+                P:{Math.round(meal.protein || 0)}g
               </span>
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[10px] font-mono text-[#78716c] dark:text-[#8e8680]">
-                <span>Calories: <strong className="text-[#1c1917] dark:text-[#ede9e6]">{item.calories}</strong></span>
-                <span>Carbs: <strong className="text-[#ea580c]">{item.carbs || 0}g</strong></span>
-                <span>Protein: <strong className="text-[#f59e0b]">{item.protein || 0}g</strong></span>
-                <span>Fat: <strong className="text-[#84cc16]">{item.fat || 0}g</strong></span>
-                <span>Sugar: <strong className="text-[#fb7185]">{item.sugar || 0}g</strong></span>
-              </div>
+              <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
+              <span className="text-[#c2410c] dark:text-[#ea580c] font-semibold">
+                C:{Math.round(meal.carbs || 0)}g
+              </span>
+              <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
+              <span className="text-[#4d7c0f] dark:text-[#84cc16] font-semibold">
+                F:{Math.round(meal.fat || 0)}g
+              </span>
+              <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
+              <span className="text-[#be123c] dark:text-[#fb7185] font-semibold">
+                Sugar:{itemSugar}g
+              </span>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* 4. Total Macro Progress Bars */}
-      <div className="pt-2 border-t border-[#f0ebe3] dark:border-[#282422] grid grid-cols-4 gap-2 text-left">
-        <div>
-          <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] block font-semibold">Calories</span>
-          <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] font-mono block">
-            {meal.calories}
-          </span>
-          <div className="h-1 w-full bg-[#f0ebe3] dark:bg-[#282422] rounded-full overflow-hidden mt-1">
-            <div className="h-full bg-[#10b981]" style={{ width: `${calPercent}%` }} />
           </div>
-          <span className="text-[9px] text-[#78716c] dark:text-[#8e8680] font-mono mt-0.5 block">{calPercent}%</span>
-        </div>
 
-        <div>
-          <span className="text-[10px] text-[#ea580c] block font-semibold">Carbs</span>
-          <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] font-mono block">
-            {Math.round(meal.carbs || 0)}g
-          </span>
-          <div className="h-1 w-full bg-[#f0ebe3] dark:bg-[#282422] rounded-full overflow-hidden mt-1">
-            <div className="h-full bg-[#ea580c]" style={{ width: `${carbPercent}%` }} />
-          </div>
-          <span className="text-[9px] text-[#78716c] dark:text-[#8e8680] font-mono mt-0.5 block">{carbPercent}%</span>
-        </div>
+          {/* AI Insight Badge if available */}
+          {meal.insight && (
+            <div className="mt-2 p-1.5 rounded-md bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200/40 dark:border-indigo-800/30 flex items-start gap-1.5 text-[10.5px] text-indigo-700 dark:text-indigo-300 italic">
+              <Sparkles className="w-3 h-3 text-indigo-500 shrink-0 mt-0.5" />
+              <span>{meal.insight}</span>
+            </div>
+          )}
 
-        <div>
-          <span className="text-[10px] text-[#f59e0b] block font-semibold">Protein</span>
-          <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] font-mono block">
-            {Math.round(meal.protein || 0)}g
-          </span>
-          <div className="h-1 w-full bg-[#f0ebe3] dark:bg-[#282422] rounded-full overflow-hidden mt-1">
-            <div className="h-full bg-[#f59e0b]" style={{ width: `${proteinPercent}%` }} />
-          </div>
-          <span className="text-[9px] text-[#78716c] dark:text-[#8e8680] font-mono mt-0.5 block">{proteinPercent}%</span>
+          {/* Decomposed Components if available */}
+          {itemsList.length > 0 && (
+            <div className="mt-2.5 pt-2 border-t border-[#f0ebe3] dark:border-[#282422]/60 space-y-1.5">
+              {itemsList.map((it, idx) => (
+                <div key={idx} className="text-xs">
+                  <div className="font-medium text-[#1c1917] dark:text-[#ede9e6]">
+                    {it.name}
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-[#78716c] dark:text-[#8e8680]">
+                    <span>Calories: <strong className="text-[#1c1917] dark:text-[#ede9e6]">{it.calories}</strong></span>
+                    <span>•</span>
+                    <span className="text-[#f59e0b]">P:{it.protein || 0}g</span>
+                    <span>•</span>
+                    <span className="text-[#ea580c]">C:{it.carbs || 0}g</span>
+                    <span>•</span>
+                    <span className="text-[#84cc16]">F:{it.fat || 0}g</span>
+                    <span>•</span>
+                    <span className="text-[#fb7185]">Sugar:{it.sugar || 0}g</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div>
-          <span className="text-[10px] text-[#84cc16] block font-semibold">Fat</span>
-          <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] font-mono block">
-            {Math.round(meal.fat || 0)}g
-          </span>
-          <div className="h-1 w-full bg-[#f0ebe3] dark:bg-[#282422] rounded-full overflow-hidden mt-1">
-            <div className="h-full bg-[#84cc16]" style={{ width: `${fatPercent}%` }} />
+        {/* Right: Calories + Touch Action Buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
+          <div className="text-right">
+            <div className="font-mono text-sm font-bold text-[#1c1917] dark:text-[#faf7f5] tabular-nums">
+              {Math.round(meal.calories)}
+            </div>
+            <div className="text-[10px] text-[#78716c] dark:text-[#8e8680] uppercase tracking-wider font-semibold">
+              KCAL
+            </div>
           </div>
-          <span className="text-[9px] text-[#78716c] dark:text-[#8e8680] font-mono mt-0.5 block">{fatPercent}%</span>
+
+          {/* Actions: Edit & Delete buttons */}
+          <div className="flex items-center gap-0.5 ml-1">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-[#78716c] dark:text-[#8e8680] active:text-[#1c1917] dark:active:text-[#ede9e6] active:bg-[#e4dfd7] dark:active:bg-[#282422] transition-colors"
+              title="Edit meal and time"
+              aria-label={`Edit ${meal.name}`}
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-[#78716c] dark:text-[#8e8680] active:text-[#b91c1c] dark:active:text-[#ea580c] active:bg-[#fee2e2] dark:active:bg-[#431407]/60 transition-colors"
+              title="Delete food entry"
+              aria-label={`Delete ${meal.name}`}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* 5. Footer: Time, Edit & Delete Buttons */}
-      <div className="flex items-center justify-between pt-2 border-t border-[#f0ebe3] dark:border-[#282422] text-xs">
-        <span className="text-[11px] font-mono text-[#78716c] dark:text-[#8e8680] flex items-center gap-1 font-semibold">
-          <Clock className="w-3.5 h-3.5" />
-          {format(mealDate, 'h:mm a')}
-        </span>
-
-        <div className="flex items-center gap-1">
-          {/* Edit Button */}
-          <button
-            onClick={() => setIsEditing(true)}
-            className="p-1.5 rounded-lg text-[#78716c] dark:text-[#8e8680] hover:text-[#10b981] hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all min-h-[36px] min-w-[36px] flex items-center justify-center"
-            title="Edit meal and time"
-            aria-label="Edit meal and time"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Delete Button */}
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="p-1.5 rounded-lg text-[#78716c] dark:text-[#8e8680] hover:text-red-500 hover:bg-red-500/10 active:scale-95 transition-all min-h-[36px] min-w-[36px] flex items-center justify-center"
-            title="Delete meal"
-            aria-label="Delete meal"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-    </article>
+    </div>
   );
 }
