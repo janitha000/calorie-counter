@@ -19,6 +19,7 @@ const MEAL_CONFIG = {
 
 export function MealStream({
   meals = [],
+  yesterdayLastMealAt,
   waterGlasses = 6,
   waterGoal = 8,
   onAddWater,
@@ -121,6 +122,12 @@ export function MealStream({
                     <div className="text-[10px] text-[#059669] dark:text-[#10b981] font-mono tracking-tight mt-0.5 flex items-center gap-1 font-semibold">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
                       Fast broken at {format(new Date(fastBrokenMeal.loggedAt), 'h:mm a')}
+                      {yesterdayLastMealAt && (() => {
+                        const diffMs = Math.max(0, new Date(fastBrokenMeal.loggedAt).getTime() - new Date(yesterdayLastMealAt).getTime());
+                        const hrs = Math.floor(diffMs / 3600000);
+                        const mins = Math.floor((diffMs % 3600000) / 60000);
+                        return ` (${hrs}h ${mins}m fast)`;
+                      })()}
                     </div>
                   )}
                   {!fastBrokenMeal && hasZeroSugarOnly && (

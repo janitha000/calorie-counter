@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { TopHUD } from './TopHUD';
@@ -21,6 +21,7 @@ export function TactileDashboard({
   consumedSugar,
   defaultTdee = 2200,
   latestMealLoggedAt,
+  yesterdayLastMealAt,
 }) {
   const router = useRouter();
 
@@ -29,6 +30,10 @@ export function TactileDashboard({
   const [activeMealTarget, setActiveMealTarget] = useState('snack');
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+
+  // Track optimistic mutations so a stale router.refresh() never reverts newly logged/deleted meals
+  const optimisticAddedRef = useRef(new Map());
+  const optimisticDeletedRef = useRef(new Set());
 
   // Theme state: dark mode default, persisted in localStorage
   const [isDark, setIsDark] = useState(true);
@@ -52,9 +57,24 @@ export function TactileDashboard({
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [canInstallPWA, setCanInstallPWA] = useState(false);
 
+  // Clear optimistic caches when switching dates
+  useEffect(() => {
+    optimisticAddedRef.current.clear();
+    optimisticDeletedRef.current.clear();
+  }, [dateParam]);
+
   // Sync meals and goals if server props change
   useEffect(() => {
-    setMeals(initialMeals);
+    const serverIds = new Set(initialMeals.map(m => m.id));
+    // Clean up any optimistic additions that are now confirmed by server
+    for (const id of optimisticAddedRef.current.keys()) {
+      if (serverIds.has(id)) {
+        optimisticAddedRef.current.delete(id);
+      }
+    }
+    const filteredServer = initialMeals.filter(m => !optimisticDeletedRef.current.has(m.id));
+    const pendingAdditions = Array.from(optimisticAddedRef.current.values());
+    setMeals([...pendingAdditions, ...filteredServer]);
   }, [initialMeals]);
 
   useEffect(() => {
@@ -179,6 +199,9 @@ export function TactileDashboard({
   };
 
   const handleLogMealSuccess = (newMeal) => {
+    if (!newMeal || !newMeal.id) return;
+    optimisticAddedRef.current.set(newMeal.id, newMeal);
+    optimisticDeletedRef.current.delete(newMeal.id);
     setMeals(prev => {
       if (prev.some(m => m.id === newMeal.id)) return prev;
       return [newMeal, ...prev];
@@ -187,12 +210,17 @@ export function TactileDashboard({
   };
 
   const handleUpdateMeal = (updatedMeal) => {
+    if (updatedMeal?.id && optimisticAddedRef.current.has(updatedMeal.id)) {
+      optimisticAddedRef.current.set(updatedMeal.id, updatedMeal);
+    }
     setMeals(prev => prev.map(m => m.id === updatedMeal.id ? updatedMeal : m));
     router.refresh();
   };
 
   const handleDeleteMeal = async (mealId) => {
     // Optimistic remove
+    optimisticAddedRef.current.delete(mealId);
+    optimisticDeletedRef.current.add(mealId);
     setMeals(prev => prev.filter(m => m.id !== mealId));
     try {
       await fetch(`/api/meals/${mealId}`, { method: 'DELETE' });
@@ -237,6 +265,7 @@ export function TactileDashboard({
         sugar={liveSugar}
         sugarLimit={goals.sugar}
         fastingStartTime={latestMealLoggedAt}
+        yesterdayLastMealAt={yesterdayLastMealAt}
         fastBrokenMeal={fastBrokenMeal}
         isDark={isDark}
         onToggleTheme={toggleTheme}
@@ -250,6 +279,7 @@ export function TactileDashboard({
       <main className="flex-1 max-w-md mx-auto w-full">
         <MealStream
           meals={meals}
+          yesterdayLastMealAt={yesterdayLastMealAt}
           waterGlasses={waterGlasses}
           waterGoal={goals.water}
           onAddWater={handleAddWater}
@@ -274,6 +304,7 @@ export function TactileDashboard({
         isOpen={isBottomSheetOpen}
         onClose={() => setIsBottomSheetOpen(false)}
         targetMeal={activeMealTarget}
+        dateParam={dateParam}
         onChangeTargetMeal={setActiveMealTarget}
         onLogMealSuccess={handleLogMealSuccess}
       />

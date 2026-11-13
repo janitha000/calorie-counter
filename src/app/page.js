@@ -70,13 +70,28 @@ export default async function Dashboard(props) {
   const consumedFat = todayMeals.reduce((acc, meal) => acc + meal.fat, 0);
   const consumedSugar = todayMeals.reduce((acc, meal) => acc + meal.sugar, 0);
 
-  // Fetch latest meal for fasting tracker
+  // Fetch latest meal for fasting tracker (Life Ops Hub anchor)
   const latestMeal = await prisma.meal.findFirst({
     where: { userId: userId },
     orderBy: { loggedAt: 'desc' }
   });
 
+  // Fetch last meal recorded yesterday for fasting period calculation
+  const yesterdayStart = new Date(today);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+  const yesterdayLastMeal = await prisma.meal.findFirst({
+    where: {
+      userId: userId,
+      loggedAt: {
+        gte: yesterdayStart,
+        lt: today,
+      },
+    },
+    orderBy: { loggedAt: 'desc' },
+  });
+
   const fallbackStartTime = latestMeal ? latestMeal.loggedAt.toISOString() : null;
+  const yesterdayLastMealAt = yesterdayLastMeal ? yesterdayLastMeal.loggedAt.toISOString() : null;
 
   return (
     <>
@@ -116,6 +131,7 @@ export default async function Dashboard(props) {
         consumedSugar={consumedSugar}
         defaultTdee={initialGoals.calories}
         latestMealLoggedAt={fallbackStartTime}
+        yesterdayLastMealAt={yesterdayLastMealAt}
       />
     </>
   );

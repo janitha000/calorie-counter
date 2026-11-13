@@ -20,11 +20,14 @@ export function BottomSheet({
   isOpen,
   onClose,
   targetMeal = 'snack',
+  dateParam,
   onChangeTargetMeal,
   onLogMealSuccess,
 }) {
   const [activeTab, setActiveTab] = useState('ai'); // 'ai' | 'staples' | 'custom'
   const [inputMealType, setInputMealType] = useState(targetMeal);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savingStapleId, setSavingStapleId] = useState(null);
 
   // AI Tab states
   const [textInput, setTextInput] = useState('');
@@ -138,7 +141,10 @@ export function BottomSheet({
   };
 
   // Submit parsed or custom meal to PostgreSQL
-  const handleSaveMeal = async (mealPayload) => {
+  const handleSaveMeal = async (mealPayload, stapleId = null) => {
+    if (isSaving) return;
+    setIsSaving(true);
+    if (stapleId) setSavingStapleId(stapleId);
     try {
       const res = await fetch('/api/meals', {
         method: 'POST',
@@ -146,6 +152,7 @@ export function BottomSheet({
         body: JSON.stringify({
           ...mealPayload,
           type: inputMealType,
+          dateParam: dateParam || undefined,
         }),
       });
 
@@ -156,9 +163,13 @@ export function BottomSheet({
       // Reset state
       setParsedResult(null);
       setTextInput('');
+      setCustomForm({ name: '', calories: '', protein: '', carbs: '', fat: '', sugar: '' });
     } catch (err) {
       console.error(err);
       alert("Failed to save meal to database.");
+    } finally {
+      setIsSaving(false);
+      setSavingStapleId(null);
     }
   };
 
@@ -172,7 +183,7 @@ export function BottomSheet({
       fat: food.fat,
       sugar: food.sugar,
       servings: 1,
-    });
+    }, food.id);
   };
 
   const filteredStaples = STAPLE_FOODS.filter(f => 
@@ -216,8 +227,9 @@ export function BottomSheet({
           </div>
 
           <button
-            onClick={onClose}
-            className="p-1 rounded-full text-[#78716c] dark:text-[#8e8680] hover:text-[#1c1917] dark:hover:text-[#ede9e6] active:scale-95"
+            onClick={() => !isSaving && onClose()}
+            disabled={isSaving}
+            className="p-1 rounded-full text-[#78716c] dark:text-[#8e8680] hover:text-[#1c1917] dark:hover:text-[#ede9e6] active:scale-95 disabled:opacity-50"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -383,10 +395,20 @@ export function BottomSheet({
 
                   <button
                     onClick={() => handleSaveMeal(parsedResult)}
-                    className="w-full py-2.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#0e0d0c] font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all min-h-[44px]"
+                    disabled={isSaving}
+                    className="w-full py-2.5 rounded-xl bg-[#10b981] hover:bg-[#059669] disabled:opacity-60 text-[#0e0d0c] font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all min-h-[44px]"
                   >
-                    <Check className="w-4 h-4 stroke-[2.5]" />
-                    Confirm & Log to {inputMealType}
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Logging meal...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 stroke-[2.5]" />
+                        Confirm & Log to {inputMealType}
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -408,11 +430,14 @@ export function BottomSheet({
               </div>
 
               <div className="grid grid-cols-1 gap-2">
-                {filteredStaples.map((food) => (
+                {filteredStaples.map((food) => {
+                  const isThisSaving = savingStapleId === food.id;
+                  return (
                   <button
                     key={food.id}
                     onClick={() => handleLogStaple(food)}
-                    className="p-2.5 rounded-xl bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] hover:border-[#10b981] flex items-center justify-between text-left group transition-all min-h-[48px]"
+                    disabled={isSaving}
+                    className="p-2.5 rounded-xl bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] hover:border-[#10b981] disabled:opacity-60 flex items-center justify-between text-left group transition-all min-h-[48px]"
                   >
                     <div>
                       <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] block">
@@ -432,11 +457,16 @@ export function BottomSheet({
                         {food.calories} kcal
                       </span>
                       <div className="w-6 h-6 rounded-lg bg-[#10b981]/10 text-[#10b981] group-hover:bg-[#10b981] group-hover:text-[#0e0d0c] flex items-center justify-center transition-colors">
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        {isThisSaving ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        )}
                       </div>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -545,10 +575,20 @@ export function BottomSheet({
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#0e0d0c] font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all min-h-[44px] mt-2"
+                disabled={isSaving}
+                className="w-full py-2.5 rounded-xl bg-[#10b981] hover:bg-[#059669] disabled:opacity-60 text-[#0e0d0c] font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all min-h-[44px] mt-2"
               >
-                <Plus className="w-4 h-4 stroke-[2.5]" />
-                Log Custom Food to {inputMealType}
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Logging meal...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    Log Custom Food to {inputMealType}
+                  </>
+                )}
               </button>
             </form>
           )}

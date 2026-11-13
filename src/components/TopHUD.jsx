@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Target, Flame, ChevronRight, ChevronLeft, Sun, Moon, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Target, Flame, ChevronRight, ChevronLeft, Sun, Moon, Download, Clock } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 
 export function TopHUD({
@@ -17,6 +17,7 @@ export function TopHUD({
   sugar = 0,
   sugarLimit = 35,
   fastingStartTime,
+  yesterdayLastMealAt,
   fastBrokenMeal,
   isDark = true,
   onToggleTheme,
@@ -25,6 +26,12 @@ export function TopHUD({
   onOpenGoals,
   onSelectDate,
 }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
   const remainingCalories = calorieLimit - consumedCalories;
   const isOver = remainingCalories < 0;
   const absRemaining = Math.abs(remainingCalories);
@@ -48,14 +55,6 @@ export function TopHUD({
   const pRatio = Math.round((pKcal / totalMacroKcal) * 100);
   const cRatio = Math.round((cKcal / totalMacroKcal) * 100);
   const fRatio = Math.max(0, 100 - pRatio - cRatio);
-
-  // Fasting window display text: only broken when sugar > 0
-  let fastingLabel = '16:8 Fasting Window';
-  if (fastBrokenMeal) {
-    fastingLabel = `Fast broken at ${format(new Date(fastBrokenMeal.loggedAt), 'h:mm a')}`;
-  } else if (sugar === 0 && consumedCalories > 0) {
-    fastingLabel = 'Fasting intact • 0g sugar';
-  }
 
   // Active date calculation
   let activeDate = new Date();
@@ -82,11 +81,45 @@ export function TopHUD({
     }
   }
 
+  // Fasting period calculation (last meal yesterday -> first meal with sugar > 0 today)
+  const formatFastingDuration = (start, end) => {
+    const diffMs = Math.max(0, end.getTime() - start.getTime());
+    const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hrs}h ${mins}m`;
+  };
+
+  let fastingLabel = '16:8 Fasting Window';
+  let fastingSubtext = '';
+  let isFastingBroken = Boolean(fastBrokenMeal);
+
+  if (yesterdayLastMealAt && fastBrokenMeal) {
+    const start = new Date(yesterdayLastMealAt);
+    const end = new Date(fastBrokenMeal.loggedAt);
+    const duration = formatFastingDuration(start, end);
+    fastingLabel = `Fasting Period: ${duration}`;
+    fastingSubtext = `${format(start, 'h:mm a')} → ${format(end, 'h:mm a')}`;
+  } else if (yesterdayLastMealAt && !fastBrokenMeal) {
+    const start = new Date(yesterdayLastMealAt);
+    if (isToday) {
+      const duration = formatFastingDuration(start, now);
+      fastingLabel = `Fasting: ${duration}`;
+      fastingSubtext = `since ${format(start, 'h:mm a')} • 0g sugar`;
+    } else {
+      fastingLabel = 'Fasting intact • 0g sugar';
+      fastingSubtext = `from ${format(start, 'h:mm a')} prev day`;
+    }
+  } else if (fastBrokenMeal) {
+    fastingLabel = `Fast broken at ${format(new Date(fastBrokenMeal.loggedAt), 'h:mm a')}`;
+  } else if (sugar === 0 && consumedCalories > 0) {
+    fastingLabel = 'Fasting intact • 0g sugar';
+  }
+
   return (
     <header className="sticky top-0 z-30 bg-[#f7f5f0]/95 dark:bg-[#0e0d0c]/95 backdrop-blur-md border-b border-[#e4dfd7] dark:border-[#282422] px-4 pt-3 pb-3 transition-colors">
-      {/* Top micro status bar with Date Navigator & Fasting Status */}
-      <div className="flex items-center justify-between text-xs mb-2.5">
-        <div className="flex items-center gap-1.5 flex-wrap">
+      {/* Top micro status bar with Date Navigator & Controls */}
+      <div className="flex items-center justify-between text-xs mb-2">
+        <div className="flex items-center gap-1.5">
           {/* Day Navigation Controls */}
           <div className="flex items-center bg-white dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] rounded-lg p-0.5 shadow-xs">
             <button
@@ -115,9 +148,6 @@ export function TopHUD({
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-
-          <span className="text-[#d8d1c7] dark:text-[#383230]">•</span>
-          <span className="font-mono text-[11px] tabular-nums text-[#78716c] dark:text-[#8e8680]">{fastingLabel}</span>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -157,6 +187,26 @@ export function TopHUD({
             <ChevronRight className="w-3 h-3 text-[#a8a29e] dark:text-[#8e8680]" />
           </button>
         </div>
+      </div>
+
+      {/* Fasting Period Status Bar */}
+      <div className="flex items-center justify-between px-2.5 py-1.5 mb-2.5 rounded-lg bg-white/70 dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[11px] shadow-xs">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`inline-block w-2 h-2 rounded-full ${
+              isFastingBroken ? 'bg-[#eab308]' : 'bg-[#10b981] animate-pulse'
+            }`}
+          />
+          <Clock className="w-3 h-3 text-[#78716c] dark:text-[#8e8680]" />
+          <span className="font-mono font-bold text-[#1c1917] dark:text-[#ede9e6] tabular-nums">
+            {fastingLabel}
+          </span>
+        </div>
+        {fastingSubtext && (
+          <span className="font-mono text-[10px] text-[#78716c] dark:text-[#8e8680] tabular-nums">
+            {fastingSubtext}
+          </span>
+        )}
       </div>
 
       {/* Main Calorie Meter Readout */}
