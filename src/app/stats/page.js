@@ -1,82 +1,90 @@
 import prisma from "@/lib/prisma";
-import { format, subDays, startOfDay, endOfDay } from "date-fns";
-import { BarChart2 } from "lucide-react";
+import { getUserGoals, DEFAULT_USER_ID } from "@/lib/goals";
+import { format, subDays, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { StatsCharts } from "@/components/StatsCharts";
 
 export const dynamic = 'force-dynamic';
 
 export default async function StatsPage({ searchParams }) {
-  const userId = "default_user_janitha";
-  
-  // Limits
-  const LIMITS = {
-    calories: 1600,
-    protein: 135,
-    carbs: 135,
-    fat: 58,
-    sugar: 25,
-    fasting: 16
+  const userId = DEFAULT_USER_ID;
+  const goals = await getUserGoals(userId);
+  const limits = {
+    calories: goals.calories,
+    protein: goals.protein,
+    carbs: goals.carbs,
+    fat: goals.fat,
+    sugar: goals.sugar,
+    fasting: 16,
   };
 
-  // searchParams must be awaited in Next.js 15
   const resolvedParams = await searchParams;
-  const range = resolvedParams?.range === 'monthly' ? 'monthly' : 'weekly';
-  const numDays = range === 'monthly' ? 30 : 7;
+  const rawRange = resolvedParams?.range;
+  const range =
+    rawRange === 'monthly' || rawRange === '30d'
+      ? '30d'
+      : rawRange === '14d'
+        ? '14d'
+        : '7d';
+  const numDays = range === '30d' ? 30 : range === '14d' ? 14 : 7;
 
   const today = new Date();
-  const dateRange = Array.from({ length: numDays }).map((_, i) => startOfDay(subDays(today, (numDays - 1) - i)));
+  const dateRange = Array.from({ length: numDays }).map((_, i) =>
+    startOfDay(subDays(today, numDays - 1 - i))
+  );
 
-  const startDate = dateRange[0];
+  // Fetch 1 extra prior day so Day 0 can compute fasting from its previous day's last meal
+  const fetchStartDate = startOfDay(subDays(dateRange[0], 1));
   const endDate = endOfDay(today);
 
-  // Fetch meals
   const meals = await prisma.meal.findMany({
     where: {
       userId,
-      loggedAt: { gte: startDate, lte: endDate }
-    }
+      loggedAt: { gte: fetchStartDate, lte: endDate },
+    },
+    orderBy: { loggedAt: 'asc' },
   });
 
-  // Fetch fasting logs
-  const fasts = await prisma.fastingLog.findMany({
-    where: {
-      userId,
-      startTime: { gte: startDate, lte: endDate }
-    }
-  });
+  const aggregatedData = dateRange.map((date) => {
+    const prevDate = subDays(date, 1);
+    const dayMeals = meals.filter((m) => isSameDay(m.loggedAt, date));
+    const prevDayMeals = meals.filter((m) => isSameDay(m.loggedAt, prevDate));
 
-  // Aggregate by Day
-  const aggregatedData = dateRange.map(date => {
-    const dayMeals = meals.filter(m => startOfDay(m.loggedAt).getTime() === date.getTime());
-    const dayFasts = fasts.filter(f => startOfDay(f.startTime).getTime() === date.getTime());
-    
+    const prevLastMeal = prevDayMeals.length > 0 ? prevDayMeals[prevDayMeals.length - 1] : null;
+    const firstSugarMeal = dayMeals.find((m) => Number(m.sugar || 0) > 0) || null;
+
+    let fastingHours = null;
+    if (prevLastMeal) {
+      let endRef = null;
+      if (firstSugarMeal) {
+        endRef = new Date(firstSugarMeal.loggedAt);
+      } else if (isSameDay(date, today)) {
+        endRef = new Date();
+      } else {
+        endRef = endOfDay(date);
+      }
+      const diffHrs = Math.max(0, (endRef.getTime() - new Date(prevLastMeal.loggedAt).getTime()) / 3600000);
+      // Cap single-day gap at 36h for clean chart scaling
+      fastingHours = Math.round(Math.min(36, diffHrs) * 10) / 10;
+    }
+
     return {
-      // Use short day for weekly (Mon), day of month for monthly (15)
-      label: range === 'monthly' ? format(date, 'd') : format(date, 'EEE'),
-      fullDate: format(date, 'MMM d, yyyy'),
-      calories: dayMeals.reduce((acc, m) => acc + m.calories, 0),
-      protein: dayMeals.reduce((acc, m) => acc + m.protein, 0),
-      carbs: dayMeals.reduce((acc, m) => acc + m.carbs, 0),
-      fat: dayMeals.reduce((acc, m) => acc + m.fat, 0),
-      sugar: dayMeals.reduce((acc, m) => acc + (m.sugar || 0), 0),
-      fasting: dayFasts.reduce((acc, f) => acc + (f.duration || 0), 0) / 60
+      dateStr: format(date, 'yyyy-MM-dd'),
+      label: range === '7d' ? format(date, 'EEE') : format(date, 'd'),
+      shortDate: format(date, 'MMM d'),
+      fullDate: format(date, 'EEE, MMM d'),
+      calories: Math.round(dayMeals.reduce((acc, m) => acc + (m.calories || 0), 0)),
+      protein: Math.round(dayMeals.reduce((acc, m) => acc + (m.protein || 0), 0) * 10) / 10,
+      carbs: Math.round(dayMeals.reduce((acc, m) => acc + (m.carbs || 0), 0) * 10) / 10,
+      fat: Math.round(dayMeals.reduce((acc, m) => acc + (m.fat || 0), 0) * 10) / 10,
+      sugar: Math.round(dayMeals.reduce((acc, m) => acc + (m.sugar || 0), 0) * 10) / 10,
+      mealCount: dayMeals.length,
+      fastingHours,
     };
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
-      <header className="px-4 pt-12 pb-4">
-        <h1 className="text-3xl font-black tracking-tight text-gray-900 flex items-center gap-2">
-          <BarChart2 className="w-8 h-8 text-blue-500" /> Stats
-        </h1>
-        <p className="text-gray-500 font-medium text-[15px] mt-1">
-          Your historical trends
-        </p>
-      </header>
-
-      <main className="flex-1 px-4 space-y-6">
-        <StatsCharts data={aggregatedData} range={range} limits={LIMITS} />
-      </main>
+    <div className="min-h-screen bg-[#f7f5f0] dark:bg-[#0e0d0c] text-[#1c1917] dark:text-[#ede9e6] flex flex-col transition-colors pb-20">
+      <StatsCharts data={aggregatedData} range={range} limits={limits} />
     </div>
   );
 }
