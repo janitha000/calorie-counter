@@ -9,14 +9,17 @@ import {
   X, 
   Sparkles, 
   Plus,
-  AlertCircle
+  AlertCircle,
+  Heart,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
+export function MealCard({ meal, isFavorited = false, onUpdateMeal, onDeleteMeal, onToggleFavorite }) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
   // Time handling
   const mealDate = new Date(meal.loggedAt || Date.now());
@@ -497,11 +500,39 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
             </div>
           </div>
 
-          {/* Actions: Edit & Delete buttons */}
+          {/* Actions: Favorite, Edit & Delete buttons */}
           <div className="flex items-center gap-0.5 ml-1">
+            {onToggleFavorite && (
+              <button
+                onClick={async () => {
+                  if (isTogglingFavorite) return;
+                  setIsTogglingFavorite(true);
+                  try {
+                    await onToggleFavorite(meal);
+                  } finally {
+                    setIsTogglingFavorite(false);
+                  }
+                }}
+                disabled={isTogglingFavorite}
+                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors active:scale-95 ${
+                  isFavorited
+                    ? 'text-[#fb7185] bg-[#fb7185]/10'
+                    : 'text-[#78716c] dark:text-[#8e8680] hover:text-[#fb7185] active:bg-[#fb7185]/10'
+                }`}
+                title={isFavorited ? 'Remove from favorites' : 'Favorite to Staples Catalog'}
+                aria-label={isFavorited ? `Unfavorite ${meal.name}` : `Favorite ${meal.name}`}
+              >
+                {isTogglingFavorite ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Heart className={`w-4 h-4 ${isFavorited ? 'fill-[#fb7185]' : ''}`} />
+                )}
+              </button>
+            )}
+
             <button
               onClick={() => setIsEditing(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-lg text-[#78716c] dark:text-[#8e8680] active:text-[#1c1917] dark:active:text-[#ede9e6] active:bg-[#e4dfd7] dark:active:bg-[#282422] transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-[#78716c] dark:text-[#8e8680] active:text-[#1c1917] dark:active:text-[#ede9e6] active:bg-[#e4dfd7] dark:active:bg-[#282422] transition-colors"
               title="Edit meal and time"
               aria-label={`Edit ${meal.name}`}
             >
@@ -510,7 +541,7 @@ export function MealCard({ meal, onUpdateMeal, onDeleteMeal }) {
 
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-lg text-[#78716c] dark:text-[#8e8680] active:text-[#b91c1c] dark:active:text-[#ea580c] active:bg-[#fee2e2] dark:active:bg-[#431407]/60 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-[#78716c] dark:text-[#8e8680] active:text-[#b91c1c] dark:active:text-[#ea580c] active:bg-[#fee2e2] dark:active:bg-[#431407]/60 transition-colors"
               title="Delete food entry"
               aria-label={`Delete ${meal.name}`}
             >

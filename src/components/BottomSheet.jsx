@@ -12,19 +12,24 @@ import {
   Check, 
   Search,
   BookOpen,
-  Edit3
+  Edit3,
+  Heart,
+  Trash2
 } from 'lucide-react';
 import { STAPLE_FOODS } from '@/data/staples';
 
 export function BottomSheet({
   isOpen,
   onClose,
+  initialTab = 'ai',
   targetMeal = 'snack',
   dateParam,
+  favorites = [],
+  onRemoveFavorite,
   onChangeTargetMeal,
   onLogMealSuccess,
 }) {
-  const [activeTab, setActiveTab] = useState('ai'); // 'ai' | 'staples' | 'custom'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'ai' | 'staples' | 'custom'
   const [inputMealType, setInputMealType] = useState(targetMeal);
   const [isSaving, setIsSaving] = useState(false);
   const [savingStapleId, setSavingStapleId] = useState(null);
@@ -52,6 +57,12 @@ export function BottomSheet({
   useEffect(() => {
     setInputMealType(targetMeal);
   }, [targetMeal]);
+
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -173,7 +184,7 @@ export function BottomSheet({
     }
   };
 
-  // Quick log a staple item
+  // Quick log a staple or favorite item
   const handleLogStaple = (food) => {
     handleSaveMeal({
       name: food.name,
@@ -182,13 +193,20 @@ export function BottomSheet({
       carbs: food.carbs,
       fat: food.fat,
       sugar: food.sugar,
+      items: food.items || null,
+      insight: food.insight || null,
       servings: 1,
     }, food.id);
   };
 
-  const filteredStaples = STAPLE_FOODS.filter(f => 
-    f.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    f.category.toLowerCase().includes(searchFilter.toLowerCase())
+  const query = searchFilter.trim().toLowerCase();
+  const filteredFavorites = favorites.filter(f =>
+    !query || f.name?.toLowerCase().includes(query)
+  );
+  const filteredStaples = STAPLE_FOODS.filter(f =>
+    !query ||
+    f.name.toLowerCase().includes(query) ||
+    f.category.toLowerCase().includes(query)
   );
 
   return (
@@ -424,50 +442,135 @@ export function BottomSheet({
                   type="text"
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  placeholder="Search staples (guava, tea, rice, chocolate, banana)..."
+                  placeholder="Search staples & favorites (guava, tea, chocolate)..."
                   className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] text-xs text-[#1c1917] dark:text-[#ede9e6] placeholder-[#a8a29e] focus:outline-none focus:border-[#10b981]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-2">
-                {filteredStaples.map((food) => {
-                  const isThisSaving = savingStapleId === food.id;
-                  return (
-                  <button
-                    key={food.id}
-                    onClick={() => handleLogStaple(food)}
-                    disabled={isSaving}
-                    className="p-2.5 rounded-xl bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] hover:border-[#10b981] disabled:opacity-60 flex items-center justify-between text-left group transition-all min-h-[48px]"
-                  >
-                    <div>
-                      <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] block">
-                        {food.name}
-                      </span>
-                      <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-mono">
-                        {food.servingUnit ? `${food.servingUnit} • ` : ''}
-                        <span className="text-[#10b981] font-semibold">P:{food.protein}g</span> •{' '}
-                        <span className="text-[#ea580c] font-semibold">C:{food.carbs}g</span> •{' '}
-                        <span className="text-[#eab308] font-semibold">F:{food.fat}g</span> •{' '}
-                        <span className="text-[#fb7185] font-semibold">Sugar:{food.sugar}g</span>
-                      </span>
-                    </div>
+              {/* Favorited Meals Section */}
+              {filteredFavorites.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#fb7185] px-0.5">
+                    <Heart className="w-3 h-3 fill-[#fb7185]" />
+                    <span>Favorites ({filteredFavorites.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {filteredFavorites.map((food) => {
+                      const isThisSaving = savingStapleId === food.id;
+                      return (
+                        <div
+                          key={food.id}
+                          className="rounded-xl bg-white dark:bg-[#0e0d0c] border border-[#fb7185]/30 dark:border-[#fb7185]/25 hover:border-[#10b981] flex items-center justify-between transition-all min-h-[48px] overflow-hidden"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleLogStaple(food)}
+                            disabled={isSaving}
+                            className="flex-1 p-2.5 flex items-center justify-between text-left group disabled:opacity-60 min-w-0"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] block truncate">
+                                {food.name}
+                              </span>
+                              <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-mono">
+                                <span className="text-[#10b981] font-semibold">P:{Math.round((food.protein || 0) * 10) / 10}g</span> •{' '}
+                                <span className="text-[#ea580c] font-semibold">C:{Math.round((food.carbs || 0) * 10) / 10}g</span> •{' '}
+                                <span className="text-[#eab308] font-semibold">F:{Math.round((food.fat || 0) * 10) / 10}g</span> •{' '}
+                                <span className="text-[#fb7185] font-semibold">Sugar:{Math.round((food.sugar || 0) * 10) / 10}g</span>
+                              </span>
+                            </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-[#1c1917] dark:text-[#ede9e6]">
-                        {food.calories} kcal
-                      </span>
-                      <div className="w-6 h-6 rounded-lg bg-[#10b981]/10 text-[#10b981] group-hover:bg-[#10b981] group-hover:text-[#0e0d0c] flex items-center justify-center transition-colors">
-                        {isThisSaving ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        )}
-                      </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs font-mono font-bold text-[#1c1917] dark:text-[#ede9e6]">
+                                {Math.round(food.calories || 0)} kcal
+                              </span>
+                              <div className="w-6 h-6 rounded-lg bg-[#10b981]/10 text-[#10b981] group-hover:bg-[#10b981] group-hover:text-[#0e0d0c] flex items-center justify-center transition-colors">
+                                {isThisSaving ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                                )}
+                              </div>
+                            </div>
+                          </button>
+
+                          {onRemoveFavorite && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveFavorite(food.id);
+                              }}
+                              disabled={isSaving}
+                              className="px-2.5 self-stretch flex items-center justify-center text-[#78716c] dark:text-[#8e8680] hover:text-red-500 border-l border-[#f0ebe3] dark:border-[#282422] transition-colors disabled:opacity-50"
+                              title="Remove from favorites"
+                              aria-label={`Remove ${food.name} from favorites`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Hardcoded Staples Section */}
+              {filteredStaples.length > 0 && (
+                <div className="space-y-2">
+                  {filteredFavorites.length > 0 && (
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#78716c] dark:text-[#8e8680] px-0.5 pt-1">
+                      Staples
                     </div>
-                  </button>
-                  );
-                })}
-              </div>
+                  )}
+                  <div className="grid grid-cols-1 gap-2">
+                    {filteredStaples.map((food) => {
+                      const isThisSaving = savingStapleId === food.id;
+                      return (
+                        <button
+                          key={food.id}
+                          onClick={() => handleLogStaple(food)}
+                          disabled={isSaving}
+                          className="p-2.5 rounded-xl bg-white dark:bg-[#0e0d0c] border border-[#e4dfd7] dark:border-[#282422] hover:border-[#10b981] disabled:opacity-60 flex items-center justify-between text-left group transition-all min-h-[48px]"
+                        >
+                          <div>
+                            <span className="text-xs font-bold text-[#1c1917] dark:text-[#ede9e6] block">
+                              {food.name}
+                            </span>
+                            <span className="text-[10px] text-[#78716c] dark:text-[#8e8680] font-mono">
+                              {food.servingUnit ? `${food.servingUnit} • ` : ''}
+                              <span className="text-[#10b981] font-semibold">P:{food.protein}g</span> •{' '}
+                              <span className="text-[#ea580c] font-semibold">C:{food.carbs}g</span> •{' '}
+                              <span className="text-[#eab308] font-semibold">F:{food.fat}g</span> •{' '}
+                              <span className="text-[#fb7185] font-semibold">Sugar:{food.sugar}g</span>
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono font-bold text-[#1c1917] dark:text-[#ede9e6]">
+                              {food.calories} kcal
+                            </span>
+                            <div className="w-6 h-6 rounded-lg bg-[#10b981]/10 text-[#10b981] group-hover:bg-[#10b981] group-hover:text-[#0e0d0c] flex items-center justify-center transition-colors">
+                              {isThisSaving ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {filteredFavorites.length === 0 && filteredStaples.length === 0 && (
+                <div className="py-8 text-center text-xs text-[#78716c] dark:text-[#8e8680]">
+                  No matching staples or favorites found.
+                </div>
+              )}
             </div>
           )}
 

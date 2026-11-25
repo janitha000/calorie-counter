@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <rect width="100" height="100" rx="24" fill="#0e0d0c"/>
+  <rect x="2" y="2" width="96" height="96" rx="22" stroke="#282422" stroke-width="2"/>
+  
+  <!-- Macronutrient Flame & Triad Emblem -->
+  <!-- Protein Petal (Yolk Gold) -->
+  <path d="M50 18 C58 28 66 38 66 52 C66 64 58 72 50 78 C42 72 34 64 34 52 C34 38 42 28 50 18 Z" fill="#f59e0b" fill-opacity="0.9"/>
+  
+  <!-- Carbs Leaf (Toasted Terracotta) -->
+  <path d="M50 35 C62 42 72 54 68 68 C64 78 52 82 45 74 C48 68 52 58 50 35 Z" fill="#ea580c" fill-opacity="0.95"/>
+  
+  <!-- Fats Arc (Avocado Olive) -->
+  <path d="M50 35 C38 42 28 54 32 68 C36 78 48 82 55 74 C52 68 48 58 50 35 Z" fill="#84cc16" fill-opacity="0.95"/>
+  
+  <!-- Calorie Core Spark (Crisp Mint) -->
+  <circle cx="50" cy="54" r="9" fill="#10b981"/>
+  <circle cx="50" cy="54" r="4.5" fill="#faf7f5"/>
+</svg>

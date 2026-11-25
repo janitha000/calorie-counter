@@ -1,0 +1,50 @@
+{
+  "name": "MacroForge • Calorie & Macro Counter",
+  "short_name": "MacroForge",
+  "description": "Mobile-first, high-density calorie, macro & sugar tracker with AI-powered meal logging.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0d0c",
+  "theme_color": "#0e0d0c",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["health", "fitness", "lifestyle", "food"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "48x48 72x72 96x96",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "AI Smart Log",
+      "short_name": "AI Log",
+      "description": "Log food instantly with AI natural language",
+      "url": "/?action=ai-log",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hydration Tracker",
+      "short_name": "Hydration",
+      "description": "Quick log water intake",
+      "url": "/?action=water",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
+}

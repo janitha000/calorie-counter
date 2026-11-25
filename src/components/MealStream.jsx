@@ -19,6 +19,7 @@ const MEAL_CONFIG = {
 
 export function MealStream({
   meals = [],
+  favorites = [],
   yesterdayLastMealAt,
   waterGlasses = 6,
   waterGoal = 8,
@@ -27,6 +28,7 @@ export function MealStream({
   onOpenLogModal,
   onDeleteMeal,
   onUpdateMeal,
+  onToggleFavorite,
 }) {
   const [openSections, setOpenSections] = useState({
     breakfast: false,
@@ -37,6 +39,17 @@ export function MealStream({
 
   const toggleSection = (type) => {
     setOpenSections(prev => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  const isMealFavorited = (meal) => {
+    if (!meal?.name) return false;
+    const normalizedName = meal.name.trim().toLowerCase();
+    const roundedCals = Math.round(Number(meal.calories) || 0);
+    return favorites.some(
+      (f) =>
+        f.name?.trim().toLowerCase() === normalizedName &&
+        Math.round(Number(f.calories) || 0) === roundedCals
+    );
   };
 
   // Group meals by type
@@ -231,8 +244,10 @@ export function MealStream({
                       <MealCard
                         key={meal.id}
                         meal={meal}
+                        isFavorited={isMealFavorited(meal)}
                         onUpdateMeal={onUpdateMeal}
                         onDeleteMeal={onDeleteMeal}
+                        onToggleFavorite={onToggleFavorite}
                       />
                     ))}
 

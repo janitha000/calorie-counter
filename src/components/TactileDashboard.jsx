@@ -12,6 +12,7 @@ import { SwipeableContainer } from './SwipeableContainer';
 
 export function TactileDashboard({
   initialMeals = [],
+  initialFavorites = [],
   initialGoals,
   dateParam,
   consumedCalories,
@@ -27,8 +28,10 @@ export function TactileDashboard({
 
   // Active state
   const [meals, setMeals] = useState(initialMeals);
+  const [favorites, setFavorites] = useState(initialFavorites);
   const [activeMealTarget, setActiveMealTarget] = useState('snack');
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [bottomSheetTab, setBottomSheetTab] = useState('ai');
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
 
   // Track optimistic mutations so a stale router.refresh() never reverts newly logged/deleted meals
@@ -76,6 +79,10 @@ export function TactileDashboard({
     const pendingAdditions = Array.from(optimisticAddedRef.current.values());
     setMeals([...pendingAdditions, ...filteredServer]);
   }, [initialMeals]);
+
+  useEffect(() => {
+    setFavorites(initialFavorites);
+  }, [initialFavorites]);
 
   useEffect(() => {
     if (initialGoals) {
@@ -195,7 +202,76 @@ export function TactileDashboard({
   // Meal operations
   const handleOpenLogModal = (mealType) => {
     if (mealType) setActiveMealTarget(mealType);
+    setBottomSheetTab('ai');
     setIsBottomSheetOpen(true);
+  };
+
+  const handleOpenStaples = () => {
+    setBottomSheetTab('staples');
+    setIsBottomSheetOpen(true);
+  };
+
+  const findFavoriteForMeal = (meal) => {
+    if (!meal?.name) return null;
+    const normalizedName = meal.name.trim().toLowerCase();
+    const roundedCals = Math.round(Number(meal.calories) || 0);
+    return favorites.find(
+      (f) =>
+        f.name?.trim().toLowerCase() === normalizedName &&
+        Math.round(Number(f.calories) || 0) === roundedCals
+    );
+  };
+
+  const handleToggleFavorite = async (meal) => {
+    const existing = findFavoriteForMeal(meal);
+    if (existing) {
+      setFavorites(prev => prev.filter(f => f.id !== existing.id));
+      try {
+        const res = await fetch(`/api/saved-meals/${existing.id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to remove favorite');
+      } catch (e) {
+        console.error(e);
+        setFavorites(prev => [existing, ...prev]);
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/saved-meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: meal.name,
+          items: meal.items || null,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fat: meal.fat,
+          sugar: meal.sugar,
+          insight: meal.insight || null,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to save favorite');
+      const data = await res.json();
+      if (data.savedMeal) {
+        setFavorites(prev => [data.savedMeal, ...prev]);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to save meal to favorites.');
+    }
+  };
+
+  const handleRemoveFavorite = async (favoriteId) => {
+    const prevFavorites = favorites;
+    setFavorites(prev => prev.filter(f => f.id !== favoriteId));
+    try {
+      const res = await fetch(`/api/saved-meals/${favoriteId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to remove favorite');
+    } catch (e) {
+      console.error(e);
+      setFavorites(prevFavorites);
+    }
   };
 
   const handleLogMealSuccess = (newMeal) => {
@@ -279,6 +355,7 @@ export function TactileDashboard({
       <main className="flex-1 max-w-md mx-auto w-full">
         <MealStream
           meals={meals}
+          favorites={favorites}
           yesterdayLastMealAt={yesterdayLastMealAt}
           waterGlasses={waterGlasses}
           waterGoal={goals.water}
@@ -287,6 +364,7 @@ export function TactileDashboard({
           onOpenLogModal={handleOpenLogModal}
           onDeleteMeal={handleDeleteMeal}
           onUpdateMeal={handleUpdateMeal}
+          onToggleFavorite={handleToggleFavorite}
         />
       </main>
 
@@ -294,17 +372,18 @@ export function TactileDashboard({
       <BottomBar
         activeMealTarget={activeMealTarget}
         onOpenLogModal={handleOpenLogModal}
-        onOpenStaples={() => {
-          setIsBottomSheetOpen(true);
-        }}
+        onOpenStaples={handleOpenStaples}
       />
 
       {/* 4. Sliding Bottom Sheet Modal (AI Natural Language + Voice/Photo + Staples Catalog + Custom) */}
       <BottomSheet
         isOpen={isBottomSheetOpen}
         onClose={() => setIsBottomSheetOpen(false)}
+        initialTab={bottomSheetTab}
         targetMeal={activeMealTarget}
         dateParam={dateParam}
+        favorites={favorites}
+        onRemoveFavorite={handleRemoveFavorite}
         onChangeTargetMeal={setActiveMealTarget}
         onLogMealSuccess={handleLogMealSuccess}
       />

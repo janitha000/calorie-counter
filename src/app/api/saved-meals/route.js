@@ -24,7 +24,7 @@ export async function POST(req) {
         userId,
         name: data.name,
         items: data.items || null,
-        calories: Number(data.calories) || 0,
+        calories: Math.round(Number(data.calories) || 0),
         protein: Number(data.protein) || 0,
         carbs: Number(data.carbs) || 0,
         fat: Number(data.fat) || 0,

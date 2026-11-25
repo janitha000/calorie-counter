@@ -90,6 +90,11 @@ export default async function Dashboard(props) {
     orderBy: { loggedAt: 'desc' },
   });
 
+  // Fetch saved favorite meals for staples catalog
+  const savedMeals = await prisma.savedMeal.findMany({
+    where: { userId: userId },
+  });
+
   const fallbackStartTime = latestMeal ? latestMeal.loggedAt.toISOString() : null;
   const yesterdayLastMealAt = yesterdayLastMeal ? yesterdayLastMeal.loggedAt.toISOString() : null;
 
@@ -122,6 +127,7 @@ export default async function Dashboard(props) {
       {/* Tactile Mobile Interface */}
       <TactileDashboard
         initialMeals={todayMeals}
+        initialFavorites={savedMeals}
         initialGoals={initialGoals}
         dateParam={dateParam}
         consumedCalories={consumedCalories}
