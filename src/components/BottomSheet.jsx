@@ -7,6 +7,7 @@ import {
   Mic, 
   MicOff, 
   Camera, 
+  Image as ImageIcon,
   Loader2, 
   Plus, 
   Check, 
@@ -39,7 +40,13 @@ export function BottomSheet({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [parsedResult, setParsedResult] = useState(null);
-  const fileInputRef = useRef(null);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
+  const photoMenuRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
 
   // Custom Form state
   const [customForm, setCustomForm] = useState({
@@ -54,6 +61,17 @@ export function BottomSheet({
   // Staples filter
   const [searchFilter, setSearchFilter] = useState('');
 
+  const stopCameraStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraOpen(false);
+  };
+
   useEffect(() => {
     setInputMealType(targetMeal);
   }, [targetMeal]);
@@ -63,6 +81,43 @@ export function BottomSheet({
       setActiveTab(initialTab);
     }
   }, [isOpen, initialTab]);
+
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'ai') {
+      setShowPhotoMenu(false);
+      stopCameraStream();
+    }
+  }, [isOpen, activeTab]);
+
+  useEffect(() => {
+    if (isCameraOpen && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [isCameraOpen]);
+
+  useEffect(() => {
+    if (!showPhotoMenu) return;
+    const handleClickOutside = (e) => {
+      if (photoMenuRef.current && !photoMenuRef.current.contains(e.target)) {
+        setShowPhotoMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showPhotoMenu]);
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -101,9 +156,8 @@ export function BottomSheet({
     }
   };
 
-  // Handle Camera File
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files?.[0];
+  // Analyze an image File/Blob via Gemini Vision API
+  const analyzeImageFile = async (file) => {
     if (!file) return;
 
     setIsAnalyzing(true);
@@ -125,6 +179,75 @@ export function BottomSheet({
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Handle Camera or Gallery File Selection
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    await analyzeImageFile(file);
+  };
+
+  // Open native mobile camera or live desktop webcam
+  const handleTakePhotoClick = async () => {
+    setShowPhotoMenu(false);
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile || !navigator.mediaDevices?.getUserMedia) {
+      cameraInputRef.current?.click();
+      return;
+    }
+
+    try {
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false,
+        });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
+      streamRef.current = stream;
+      setIsCameraOpen(true);
+    } catch (err) {
+      console.error('Camera access unavailable, falling back to file input:', err);
+      cameraInputRef.current?.click();
+    }
+  };
+
+  const handleChooseFromStorageClick = () => {
+    setShowPhotoMenu(false);
+    galleryInputRef.current?.click();
+  };
+
+  const handleCaptureFromStream = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    stopCameraStream();
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `meal-photo-${Date.now()}.jpg`, {
+          type: 'image/jpeg',
+        });
+        analyzeImageFile(file);
+      },
+      'image/jpeg',
+      0.85
+    );
   };
 
   // Handle Text AI Analysis
@@ -319,23 +442,91 @@ export function BottomSheet({
                     >
                       {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="p-1.5 rounded-lg bg-[#f7f5f0] dark:bg-[#151312] border border-[#e4dfd7] dark:border-[#282422] text-[#78716c] dark:text-[#8e8680] hover:text-[#10b981] transition-colors"
-                      title="Scan meal photo"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </button>
+                    <div className="relative" ref={photoMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowPhotoMenu((prev) => !prev)}
+                        disabled={isAnalyzing}
+                        className={`p-1.5 rounded-lg border transition-colors ${
+                          showPhotoMenu || isCameraOpen
+                            ? 'bg-[#10b981]/15 border-[#10b981] text-[#10b981]'
+                            : 'bg-[#f7f5f0] dark:bg-[#151312] border-[#e4dfd7] dark:border-[#282422] text-[#78716c] dark:text-[#8e8680] hover:text-[#10b981]'
+                        }`}
+                        title="Add meal photo"
+                        aria-label="Add meal photo"
+                        aria-expanded={showPhotoMenu}
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+
+                      {showPhotoMenu && (
+                        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white dark:bg-[#1c1917] border border-[#e4dfd7] dark:border-[#282422] shadow-xl p-1.5 z-20 space-y-1">
+                          <button
+                            type="button"
+                            onClick={handleTakePhotoClick}
+                            className="w-full px-3 py-2 rounded-lg text-left text-xs font-semibold text-[#1c1917] dark:text-[#ede9e6] hover:bg-[#f7f5f0] dark:hover:bg-[#282422] flex items-center gap-2.5 transition-colors"
+                          >
+                            <Camera className="w-4 h-4 text-[#10b981] shrink-0" />
+                            <span>Take Photo</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleChooseFromStorageClick}
+                            className="w-full px-3 py-2 rounded-lg text-left text-xs font-semibold text-[#1c1917] dark:text-[#ede9e6] hover:bg-[#f7f5f0] dark:hover:bg-[#282422] flex items-center gap-2.5 transition-colors"
+                          >
+                            <ImageIcon className="w-4 h-4 text-[#10b981] shrink-0" />
+                            <span>Choose from Storage</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <input
                       type="file"
                       accept="image/*"
-                      ref={fileInputRef}
+                      capture="environment"
+                      ref={cameraInputRef}
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={galleryInputRef}
                       onChange={handlePhotoUpload}
                       className="hidden"
                     />
                   </div>
                 </div>
+
+                {/* Live Camera Viewfinder (Desktop / WebRTC fallback) */}
+                {isCameraOpen && (
+                  <div className="rounded-xl overflow-hidden bg-black border border-[#e4dfd7] dark:border-[#282422] space-y-2 p-2">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full max-h-64 object-cover rounded-lg bg-black"
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={stopCameraStream}
+                        className="flex-1 py-2 rounded-lg bg-[#282422] text-[#ede9e6] font-bold text-xs hover:bg-[#383330] transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCaptureFromStream}
+                        className="flex-1 py-2 rounded-lg bg-[#10b981] hover:bg-[#059669] text-[#0e0d0c] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                        Capture Photo
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
