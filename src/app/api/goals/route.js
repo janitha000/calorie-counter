@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 const userId = "default_user_janitha";
 
@@ -61,6 +64,10 @@ export async function POST(req) {
         goal: JSON.stringify(goals),
       },
     });
+
+    revalidatePath('/');
+    revalidatePath('/stats');
+    revalidatePath('/summary');
 
     return NextResponse.json({ success: true, goals });
   } catch (error) {

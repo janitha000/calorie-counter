@@ -17,7 +17,9 @@ export default function proxy(request) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
   
-  return NextResponse.next()
+  const response = NextResponse.next()
+  response.headers.set('Cache-Control', 'private, no-cache, no-store, max-age=0, must-revalidate')
+  return response
 }
 
 export const config = {

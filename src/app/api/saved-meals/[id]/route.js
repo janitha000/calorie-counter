@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 export async function DELETE(req, { params }) {
@@ -13,6 +14,8 @@ export async function DELETE(req, { params }) {
         userId: userId,
       }
     });
+
+    revalidatePath('/');
 
     return NextResponse.json({ success: true });
   } catch (error) {

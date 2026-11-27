@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
   try {
@@ -32,6 +35,8 @@ export async function POST(req) {
         insight: data.insight || null,
       }
     });
+
+    revalidatePath('/');
 
     return NextResponse.json({ success: true, savedMeal });
   } catch (error) {

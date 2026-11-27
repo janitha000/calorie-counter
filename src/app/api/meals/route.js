@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 export async function POST(req) {
@@ -45,6 +46,10 @@ export async function POST(req) {
         loggedAt,
       }
     });
+
+    revalidatePath('/');
+    revalidatePath('/stats');
+    revalidatePath('/summary');
 
     return NextResponse.json({ success: true, meal });
   } catch (error) {

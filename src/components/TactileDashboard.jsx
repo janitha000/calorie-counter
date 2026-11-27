@@ -113,12 +113,14 @@ export function TactileDashboard({
       setWaterGlasses(Number(savedWater));
     }
 
-    // 3. Goals initialization
-    const savedGoals = localStorage.getItem('macro_goals');
-    if (savedGoals) {
-      try {
-        setGoals(JSON.parse(savedGoals));
-      } catch (e) {}
+    // 3. Goals initialization (fallback only if server did not pass initialGoals)
+    if (!initialGoals) {
+      const savedGoals = localStorage.getItem('macro_goals');
+      if (savedGoals) {
+        try {
+          setGoals(JSON.parse(savedGoals));
+        } catch (e) {}
+      }
     }
 
     // 4. Auto-select meal target by current hour
@@ -136,9 +138,12 @@ export function TactileDashboard({
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
 
-    // 6. Service worker registration
+    // 6. Service worker registration (bypass HTTP cache so updated SW purges stale v1 cache immediately)
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker
+        .register('/sw.js', { updateViaCache: 'none' })
+        .then((reg) => reg.update().catch(() => {}))
+        .catch(() => {});
     }
 
     return () => {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 export async function PUT(req, { params }) {
@@ -30,6 +31,10 @@ export async function PUT(req, { params }) {
       data: updateData,
     });
 
+    revalidatePath('/');
+    revalidatePath('/stats');
+    revalidatePath('/summary');
+
     return NextResponse.json({ success: true, meal });
   } catch (error) {
     console.error("Error updating meal:", error);
@@ -44,6 +49,10 @@ export async function DELETE(req, { params }) {
     await prisma.meal.delete({
       where: { id }
     });
+
+    revalidatePath('/');
+    revalidatePath('/stats');
+    revalidatePath('/summary');
 
     return NextResponse.json({ success: true });
   } catch (error) {
